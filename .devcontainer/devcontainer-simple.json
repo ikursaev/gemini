@@ -1,0 +1,25 @@
+{
+  "name": "Gemini CLI Development (Simple)",
+  "image": "node:20",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-vscode.vscode-typescript-next",
+        "dbaeumer.vscode-eslint",
+        "esbenp.prettier-vscode",
+        "eamodio.gitlens",
+        "ms-vscode.vscode-json",
+        "christian-kohler.npm-intellisense"
+      ],
+      "settings": {
+        "editor.formatOnSave": true,
+        "editor.defaultFormatter": "esbenp.prettier-vscode",
+        "npm.packageManager": "npm",
+        "terminal.integrated.defaultProfile.linux": "bash"
+      }
+    }
+  },
+  "postCreateCommand": "npm ci && npm run build",
+  "remoteUser": "node",
+  "workspaceFolder": "/workspace"
+}
