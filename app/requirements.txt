@@ -7,5 +7,6 @@ Pillow
 PyMuPDF
 python-magic
 pydantic
-pydantic-settingspython-multipart
+pydantic-settings
+python-multipart
 fastapi-limiter

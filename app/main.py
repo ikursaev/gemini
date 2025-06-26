@@ -25,7 +25,7 @@ app = FastAPI()
 
 @app.on_event("startup")
 async def startup():
-    r = redis.Redis(host="localhost", port=6379, db=0, encoding="utf-8", decode_responses=True)
+    r = redis.asyncio.Redis(host="localhost", port=6379, db=0, encoding="utf-8", decode_responses=True)
     await FastAPILimiter.init(r)
 
 # Configure the Gemini API
@@ -107,7 +107,7 @@ async def read_root():
     with open("app/templates/index.html", "r") as f:
         return HTMLResponse(content=f.read())
 
-@app.post("/uploadfile/", dependencies=[Depends(RateLimiter(times=15, seconds=60)), Depends(RateLimiter(times=500, days=1))])
+@app.post("/uploadfile/", dependencies=[Depends(RateLimiter(times=15, seconds=60))])
 async def create_upload_file(file: UploadFile = File(...)):
     file_bytes = await file.read()
     mime_type = magic.from_buffer(file_bytes, mime=True)
