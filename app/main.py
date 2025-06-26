@@ -1,19 +1,20 @@
-import os
 import io
-import magic
-import fitz
-import sys
-from PIL import Image
-from fastapi import FastAPI, File, UploadFile, HTTPException, Depends
-from fastapi.responses import HTMLResponse, StreamingResponse
 import json
-from pydantic import BaseModel
+import os
+import sys
+import uuid
+
+import fitz
 import google.generativeai as genai
+import magic
+import redis
 from dotenv import load_dotenv
+from fastapi import Depends, FastAPI, File, HTTPException, UploadFile
+from fastapi.responses import HTMLResponse, StreamingResponse
 from fastapi_limiter import FastAPILimiter
 from fastapi_limiter.depends import RateLimiter
-import redis
-import uuid
+from PIL import Image
+from pydantic import BaseModel
 
 temp_storage = {}
 
@@ -26,55 +27,77 @@ load_dotenv()
 
 from contextlib import asynccontextmanager
 
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    r = redis.asyncio.Redis(host="localhost", port=6379, db=0, encoding="utf-8", decode_responses=True)
+    r = redis.asyncio.Redis(
+        host="localhost", port=6379, db=0, encoding="utf-8", decode_responses=True
+    )
     await FastAPILimiter.init(r)
     yield
+
 
 app = FastAPI(lifespan=lifespan)
 
 # Configure the Gemini API
 genai.configure(api_key=settings.GOOGLE_API_KEY)
-model = genai.GenerativeModel('gemini-2.5-flash-lite-preview-06-17', generation_config=genai.GenerationConfig(temperature=0))
+model = genai.GenerativeModel(
+    "gemini-2.5-flash-lite-preview-06-17",
+    generation_config=genai.GenerationConfig(temperature=0),
+)
 
 UPLOAD_FOLDER = "uploads"
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+
 
 class Table(BaseModel):
     headers: list[str]
     rows: list[list[str]]
 
+
 class ExtractedData(BaseModel):
     text: str = ""
     tables: list[Table] = []
 
-async def extract_content_from_image(image_bytes: bytes) -> tuple[ExtractedData, int, int]:
+
+async def extract_content_from_image(
+    image_bytes: bytes,
+) -> tuple[ExtractedData, int, int]:
     try:
         image = Image.open(io.BytesIO(image_bytes))
 
         prompt_parts = [
             "Extract all text and any tables from this image. If tables are present, represent them as a JSON array of objects with 'headers' and 'rows' keys.",
-            image
+            image,
         ]
 
-        input_tokens =  (await model.count_tokens_async(prompt_parts)).total_tokens
+        input_tokens = (await model.count_tokens_async(prompt_parts)).total_tokens
         response = await model.generate_content_async(prompt_parts)
         output_tokens = (await model.count_tokens_async(response.text)).total_tokens
-        print(f"Image Extraction - Input Tokens: {input_tokens}, Output Tokens: {output_tokens}")
+        print(
+            f"Image Extraction - Input Tokens: {input_tokens}, Output Tokens: {output_tokens}"
+        )
         # Attempt to parse as JSON first, then fallback to plain text
         try:
             data = response.text.strip()
             if data.startswith("```json") and data.endswith("```"):
                 json_str = data[7:-3].strip()
                 parsed_data = json.loads(json_str)
-                return ExtractedData(text=parsed_data.get("text", ""), tables=[Table(**t) for t in parsed_data.get("tables", [])]), input_tokens, output_tokens
+                return (
+                    ExtractedData(
+                        text=parsed_data.get("text", ""),
+                        tables=[Table(**t) for t in parsed_data.get("tables", [])],
+                    ),
+                    input_tokens,
+                    output_tokens,
+                )
             else:
                 return ExtractedData(text=response.text), input_tokens, output_tokens
         except json.JSONDecodeError:
             return ExtractedData(text=response.text), input_tokens, output_tokens
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error processing image: {e}")
+
 
 async def extract_content_from_pdf(pdf_bytes: bytes) -> list[ExtractedData]:
     extracted_pages_data = []
@@ -92,16 +115,25 @@ async def extract_content_from_pdf(pdf_bytes: bytes) -> list[ExtractedData]:
                 xref = img[0]
                 base_image = doc.extract_image(xref)
                 image_bytes = base_image["image"]
-                extracted_image_data, img_input_tokens, img_output_tokens = await extract_content_from_image(image_bytes)
+                (
+                    extracted_image_data,
+                    img_input_tokens,
+                    img_output_tokens,
+                ) = await extract_content_from_image(image_bytes)
                 text_content += "\n--- Image Text ---\n" + extracted_image_data.text
                 tables_content.extend(extracted_image_data.tables)
                 total_input_tokens += img_input_tokens
                 total_output_tokens += img_output_tokens
-            extracted_pages_data.append(ExtractedData(text=text_content, tables=tables_content))
-        print(f"PDF Extraction - Total Input Tokens: {total_input_tokens}, Total Output Tokens: {total_output_tokens}")
+            extracted_pages_data.append(
+                ExtractedData(text=text_content, tables=tables_content)
+            )
+        print(
+            f"PDF Extraction - Total Input Tokens: {total_input_tokens}, Total Output Tokens: {total_output_tokens}"
+        )
         return extracted_pages_data
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error processing PDF: {e}")
+
 
 def generate_markdown(extracted_data_list: list[ExtractedData]) -> str:
     markdown_output = ""
@@ -110,7 +142,7 @@ def generate_markdown(extracted_data_list: list[ExtractedData]) -> str:
         if data.text:
             markdown_output += data.text + "\n\n"
         for i, table in enumerate(data.tables):
-            markdown_output += f"## Table {i+1} (Page {page_num + 1})\n\n"
+            markdown_output += f"## Table {i + 1} (Page {page_num + 1})\n\n"
             markdown_output += "|" + "|".join(table.headers) + "|\n"
             markdown_output += "|" + "|".join(["---"] * len(table.headers)) + "|\n"
             for row in table.rows:
@@ -119,10 +151,12 @@ def generate_markdown(extracted_data_list: list[ExtractedData]) -> str:
         markdown_output += "---\n\n"  # Separator for pages
     return markdown_output
 
+
 @app.get("/", response_class=HTMLResponse)
 async def read_root():
     with open("app/templates/index.html", "r") as f:
         return HTMLResponse(content=f.read())
+
 
 @app.post("/uploadfile/", dependencies=[Depends(RateLimiter(times=150, seconds=60))])
 async def create_upload_file(file: UploadFile = File(...)):
@@ -133,11 +167,17 @@ async def create_upload_file(file: UploadFile = File(...)):
     if mime_type == "application/pdf":
         extracted_data_list = await extract_content_from_pdf(file_bytes)
     elif mime_type.startswith("image/"):
-        extracted_data, input_tokens, output_tokens = await extract_content_from_image(file_bytes)
-        extracted_data_list = [extracted_data] # Wrap in list for consistency
-        print(f"Total Input Tokens: {input_tokens}, Total Output Tokens: {output_tokens}")
+        extracted_data, input_tokens, output_tokens = await extract_content_from_image(
+            file_bytes
+        )
+        extracted_data_list = [extracted_data]  # Wrap in list for consistency
+        print(
+            f"Total Input Tokens: {input_tokens}, Total Output Tokens: {output_tokens}"
+        )
     else:
-        raise HTTPException(status_code=400, detail=f"Unsupported file type: {mime_type}")
+        raise HTTPException(
+            status_code=400, detail=f"Unsupported file type: {mime_type}"
+        )
 
     markdown_content = generate_markdown(extracted_data_list)
     # Store the markdown content temporarily and generate a unique ID
@@ -153,7 +193,11 @@ async def create_upload_file(file: UploadFile = File(...)):
 
     return HTMLResponse(content=html_content)
 
-@app.get("/download_markdown/{file_id}", dependencies=[Depends(RateLimiter(times=150, seconds=60))])
+
+@app.get(
+    "/download_markdown/{file_id}",
+    dependencies=[Depends(RateLimiter(times=150, seconds=60))],
+)
 async def download_markdown(file_id: str):
     markdown_content = temp_storage.get(file_id)
     if not markdown_content:
@@ -162,11 +206,11 @@ async def download_markdown(file_id: str):
     return StreamingResponse(
         io.BytesIO(markdown_content.encode("utf-8")),
         media_type="text/markdown",
-        headers={
-            "Content-Disposition": "attachment; filename=extracted_data.md"
-        },
+        headers={"Content-Disposition": "attachment; filename=extracted_data.md"},
     )
+
 
 if __name__ == "__main__":
     import uvicorn
+
     uvicorn.run(app, host="0.0.0.0", port=settings.PORT)
