@@ -3,8 +3,8 @@ import json
 import os
 import sys
 import uuid
+from contextlib import asynccontextmanager
 
-import fitz
 import google.generativeai as genai
 import magic
 import redis
@@ -16,16 +16,14 @@ from fastapi_limiter.depends import RateLimiter
 from PIL import Image
 from pydantic import BaseModel
 
+from app.config import settings
+
 temp_storage = {}
 
 # Add the project root to the Python path
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from app.config import settings
-
 load_dotenv()
-
-from contextlib import asynccontextmanager
 
 
 @asynccontextmanager
@@ -41,6 +39,7 @@ app = FastAPI(lifespan=lifespan)
 
 # Configure the Gemini API
 genai.configure(api_key=settings.GOOGLE_API_KEY)
+client = genai.Client()
 model = genai.GenerativeModel(
     "gemini-2.5-flash-lite-preview-06-17",
     generation_config=genai.GenerationConfig(temperature=0),
@@ -99,46 +98,9 @@ async def extract_content_from_image(
         raise HTTPException(status_code=500, detail=f"Error processing image: {e}")
 
 
-async def extract_content_from_pdf(pdf_bytes: bytes) -> list[ExtractedData]:
-    extracted_pages_data = []
-    total_input_tokens = 0
-    total_output_tokens = 0
-    try:
-        doc = fitz.open(stream=pdf_bytes, filetype="pdf")
-        for page_num in range(len(doc)):
-            page = doc.load_page(page_num)
-            text_content = page.get_text()
-            tables_content = []
-
-            image_list = page.get_images(full=True)
-            for img_index, img in enumerate(image_list):
-                xref = img[0]
-                base_image = doc.extract_image(xref)
-                image_bytes = base_image["image"]
-                (
-                    extracted_image_data,
-                    img_input_tokens,
-                    img_output_tokens,
-                ) = await extract_content_from_image(image_bytes)
-                text_content += "\n--- Image Text ---\n" + extracted_image_data.text
-                tables_content.extend(extracted_image_data.tables)
-                total_input_tokens += img_input_tokens
-                total_output_tokens += img_output_tokens
-            extracted_pages_data.append(
-                ExtractedData(text=text_content, tables=tables_content)
-            )
-        print(
-            f"PDF Extraction - Total Input Tokens: {total_input_tokens}, Total Output Tokens: {total_output_tokens}"
-        )
-        return extracted_pages_data
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error processing PDF: {e}")
-
-
 def generate_markdown(extracted_data_list: list[ExtractedData]) -> str:
     markdown_output = ""
     for page_num, data in enumerate(extracted_data_list):
-        markdown_output += f"# Page {page_num + 1}\n\n"
         if data.text:
             markdown_output += data.text + "\n\n"
         for i, table in enumerate(data.tables):
@@ -165,7 +127,25 @@ async def create_upload_file(file: UploadFile = File(...)):
     mime_type = magic.from_buffer(file_bytes, mime=True)
 
     if mime_type == "application/pdf":
-        extracted_data_list = await extract_content_from_pdf(file_bytes)
+        # Save the PDF to a temporary file
+        temp_pdf_path = os.path.join(UPLOAD_FOLDER, file.filename)
+        with open(temp_pdf_path, "wb") as f:
+            f.write(file_bytes)
+
+        # Upload the file to Gemini
+        uploaded_file = client.files.upload(file=temp_pdf_path)
+
+        # Generate content from the uploaded file
+        response = await model.generate_content_async(
+            contents=[
+                uploaded_file,
+                "Extract all text and any tables from this PDF. If tables are present, represent them as a JSON array of objects with 'headers' and 'rows' keys.",
+            ],
+        )
+        # Clean up the temporary file
+        os.remove(temp_pdf_path)
+
+        extracted_data_list = [ExtractedData(text=response.text)]
     elif mime_type.startswith("image/"):
         extracted_data, input_tokens, output_tokens = await extract_content_from_image(
             file_bytes
