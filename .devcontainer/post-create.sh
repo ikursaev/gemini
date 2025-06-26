@@ -59,7 +59,21 @@ if [ -f "package.json" ]; then
         print_warning "Build failed, but continuing..."
     fi
 else
-    print_warning "No package.json found - skipping npm operations"
+    print_warning "No package.json found - skipping npm project operations"
+fi
+
+# Update npm and install Gemini CLI globally
+print_status "Updating npm and installing Gemini CLI..."
+if npm update -g npm 2>/dev/null; then
+    print_success "npm updated successfully"
+else
+    print_warning "npm update failed, but continuing..."
+fi
+
+if npm install -g @google/gemini-cli 2>/dev/null; then
+    print_success "Gemini CLI installed globally"
+else
+    print_warning "Gemini CLI installation failed, but continuing..."
 fi
 
 # Set up git configuration
@@ -153,12 +167,14 @@ else
     print_success "Development workflow:"
     echo "  1. Set up your GEMINI_API_KEY environment variable"
     echo "  2. Activate Python venv: source venv/bin/activate"
-    echo "  3. Start coding in your preferred language"
+    echo "  3. Use 'gemini-cli' command to interact with Gemini API"
+    echo "  4. Start coding in your preferred language"
     echo ""
     print_success "VS Code is configured with:"
     echo "  ✅ Python support"
     echo "  ✅ Git integration"
     echo "  ✅ Python virtual environment"
+    echo "  ✅ Gemini CLI globally installed"
 fi
 echo ""
 
