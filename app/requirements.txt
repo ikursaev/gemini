@@ -8,3 +8,4 @@ PyMuPDF
 python-magic
 pydantic
 pydantic-settingspython-multipart
+fastapi-limiter

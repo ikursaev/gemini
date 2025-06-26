@@ -10,6 +10,9 @@ import json
 from pydantic import BaseModel
 import google.generativeai as genai
 from dotenv import load_dotenv
+from fastapi_limiter import FastAPILimiter
+from fastapi_limiter.depends import RateLimiter
+import redis
 
 # Add the project root to the Python path
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -19,6 +22,11 @@ from app.config import settings
 load_dotenv()
 
 app = FastAPI()
+
+@app.on_event("startup")
+async def startup():
+    r = redis.Redis(host="localhost", port=6379, db=0, encoding="utf-8", decode_responses=True)
+    await FastAPILimiter.init(r)
 
 # Configure the Gemini API
 genai.configure(api_key=settings.GOOGLE_API_KEY)
@@ -99,7 +107,7 @@ async def read_root():
     with open("app/templates/index.html", "r") as f:
         return HTMLResponse(content=f.read())
 
-@app.post("/uploadfile/")
+@app.post("/uploadfile/", dependencies=[Depends(RateLimiter(times=15, seconds=60)), Depends(RateLimiter(times=500, days=1))])
 async def create_upload_file(file: UploadFile = File(...)):
     file_bytes = await file.read()
     mime_type = magic.from_buffer(file_bytes, mime=True)
