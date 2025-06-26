@@ -27,21 +27,39 @@ print_error() {
     echo -e "${RED}[ERROR]${NC} $1"
 }
 
-# Install dependencies
-print_status "Installing npm dependencies..."
-if npm ci --no-audit --prefer-offline; then
-    print_success "Dependencies installed successfully"
+# Set up Python virtual environment
+print_status "Setting up Python virtual environment..."
+if [ ! -d "venv" ]; then
+    python3 -m venv venv
+    print_success "Created Python virtual environment"
 else
-    print_error "Failed to install dependencies"
-    exit 1
+    print_success "Python virtual environment already exists"
 fi
 
-# Generate git commit info and build
-print_status "Building the project..."
-if npm run build 2>/dev/null; then
-    print_success "Project built successfully"
+# Activate virtual environment and upgrade pip
+source venv/bin/activate
+python -m pip install --upgrade pip
+print_success "Virtual environment activated and pip upgraded"
+
+# Install dependencies (only if package.json exists)
+if [ -f "package.json" ]; then
+    print_status "Installing npm dependencies..."
+    if npm ci --no-audit --prefer-offline; then
+        print_success "Dependencies installed successfully"
+    else
+        print_error "Failed to install dependencies"
+        exit 1
+    fi
+
+    # Generate git commit info and build
+    print_status "Building the project..."
+    if npm run build 2>/dev/null; then
+        print_success "Project built successfully"
+    else
+        print_warning "Build failed, but continuing..."
+    fi
 else
-    print_warning "Build failed, but continuing..."
+    print_warning "No package.json found - skipping npm operations"
 fi
 
 # Set up git configuration
@@ -105,27 +123,43 @@ fi
 echo ""
 echo "🎉 Development environment ready!"
 echo ""
-print_success "Available npm scripts:"
-echo "  npm run build          - Build the project"
-echo "  npm run start          - Start the CLI in development mode"
-echo "  npm run debug          - Start with debugging enabled"
-echo "  npm run test           - Run tests"
-echo "  npm run lint           - Run linting"
-echo "  npm run format         - Format code with Prettier"
-echo "  npm run preflight      - Run full preflight checks"
-echo ""
-print_success "Development workflow:"
-echo "  1. Set up your GEMINI_API_KEY environment variable"
-echo "  2. Run 'npm run build' to build the project"
-echo "  3. Run 'npm start' to start the CLI"
-echo "  4. Or run 'npx @google/gemini-cli' to test the published version"
-echo ""
-print_success "VS Code is configured with:"
-echo "  ✅ TypeScript support"
-echo "  ✅ ESLint integration"
-echo "  ✅ Prettier formatting"
-echo "  ✅ Debug configuration"
-echo "  ✅ Git integration"
+
+# Show Node.js specific information only if package.json exists
+if [ -f "package.json" ]; then
+    print_success "Available npm scripts:"
+    echo "  npm run build          - Build the project"
+    echo "  npm run start          - Start the CLI in development mode"
+    echo "  npm run debug          - Start with debugging enabled"
+    echo "  npm run test           - Run tests"
+    echo "  npm run lint           - Run linting"
+    echo "  npm run format         - Format code with Prettier"
+    echo "  npm run preflight      - Run full preflight checks"
+    echo ""
+    print_success "Development workflow:"
+    echo "  1. Set up your GEMINI_API_KEY environment variable"
+    echo "  2. Activate Python venv: source venv/bin/activate"
+    echo "  3. Run 'npm run build' to build the project"
+    echo "  4. Run 'npm start' to start the CLI"
+    echo "  5. Or run 'npx @google/gemini-cli' to test the published version"
+    echo ""
+    print_success "VS Code is configured with:"
+    echo "  ✅ TypeScript support"
+    echo "  ✅ ESLint integration"
+    echo "  ✅ Prettier formatting"
+    echo "  ✅ Debug configuration"
+    echo "  ✅ Git integration"
+    echo "  ✅ Python virtual environment"
+else
+    print_success "Development workflow:"
+    echo "  1. Set up your GEMINI_API_KEY environment variable"
+    echo "  2. Activate Python venv: source venv/bin/activate"
+    echo "  3. Start coding in your preferred language"
+    echo ""
+    print_success "VS Code is configured with:"
+    echo "  ✅ Python support"
+    echo "  ✅ Git integration"
+    echo "  ✅ Python virtual environment"
+fi
 echo ""
 
 if [ -z "$GEMINI_API_KEY" ]; then

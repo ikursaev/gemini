@@ -2,9 +2,18 @@
   "name": "Gemini CLI Development",
   "build": {
     "dockerfile": "Dockerfile",
-    "context": ".."
+    "context": ".",
+    "args": {}
   },
-  "features": {},
+  "features": {
+    "ghcr.io/devcontainers/features/common-utils:2": {
+      "installZsh": false,
+      "username": "node",
+      "userUid": "1000",
+      "userGid": "1000",
+      "upgradePackages": false
+    }
+  },
   "runArgs": [
     "--security-opt", "seccomp=unconfined"
   ],
@@ -19,7 +28,11 @@
         "christian-kohler.npm-intellisense",
         "ms-vscode.vscode-node-debug2",
         "bradlc.vscode-tailwindcss",
-        "ms-vscode.hexeditor"
+        "ms-vscode.hexeditor",
+        "ms-python.python",
+        "ms-python.vscode-pylance",
+        "ms-python.debugpy",
+        "charliermarsh.ruff"
       ],
       "settings": {
         "editor.formatOnSave": true,
@@ -41,8 +54,24 @@
         "files.watcherExclude": {
           "**/node_modules/**": true,
           "**/dist/**": true,
-          "**/bundle/**": true
-        }
+          "**/bundle/**": true,
+          "**/__pycache__/**": true,
+          "**/venv/**": true,
+          "**/.venv/**": true
+        },
+        "python.defaultInterpreterPath": "/usr/bin/python3",
+        "python.formatting.provider": "none",
+        "[python]": {
+          "editor.defaultFormatter": "charliermarsh.ruff",
+          "editor.formatOnSave": true,
+          "editor.codeActionsOnSave": {
+            "source.organizeImports": "explicit",
+            "source.fixAll.ruff": "explicit"
+          }
+        },
+        "python.linting.enabled": true,
+        "python.linting.ruffEnabled": true,
+        "ruff.importStrategy": "fromEnvironment"
       }
     }
   },
@@ -56,7 +85,9 @@
   "postCreateCommand": "bash .devcontainer/post-create.sh",
   "remoteUser": "node",
   "workspaceFolder": "/workspace",
-  "mounts": [],
+  "mounts": [
+    "source=${localWorkspaceFolder},target=/workspace,type=bind,consistency=cached"
+  ],
   "containerEnv": {
     "NODE_ENV": "development"
   },
