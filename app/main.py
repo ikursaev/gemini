@@ -1,8 +1,8 @@
 import io
 import json
-import os
 import sys
 import uuid
+from pathlib import Path
 from contextlib import asynccontextmanager
 
 import google.generativeai as genai
@@ -21,7 +21,7 @@ from app.config import settings
 temp_storage = {}
 
 # Add the project root to the Python path
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+sys.path.append(str(Path(__file__).resolve().parent.parent))
 
 load_dotenv()
 
@@ -46,7 +46,7 @@ model = genai.GenerativeModel(
 )
 
 UPLOAD_FOLDER = "uploads"
-os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+Path(UPLOAD_FOLDER).mkdir(exist_ok=True)
 
 
 class Table(BaseModel):
@@ -128,7 +128,7 @@ async def create_upload_file(file: UploadFile = File(...)):
 
     if mime_type == "application/pdf":
         # Save the PDF to a temporary file
-        temp_pdf_path = os.path.join(UPLOAD_FOLDER, file.filename)
+        temp_pdf_path = Path(UPLOAD_FOLDER) / file.filename
         with open(temp_pdf_path, "wb") as f:
             f.write(file_bytes)
 
@@ -143,7 +143,7 @@ async def create_upload_file(file: UploadFile = File(...)):
             ],
         )
         # Clean up the temporary file
-        os.remove(temp_pdf_path)
+        temp_pdf_path.unlink()
 
         extracted_data_list = [ExtractedData(text=response.text)]
     elif mime_type.startswith("image/"):
