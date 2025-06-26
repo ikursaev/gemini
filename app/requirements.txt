@@ -4,7 +4,7 @@ python-dotenv
 google-generativeai
 werkzeug
 Pillow
-PyMuPDF
+
 python-magic
 pydantic
 pydantic-settings
