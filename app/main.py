@@ -59,9 +59,7 @@ async def extract_content_from_image(image_bytes: bytes) -> tuple[ExtractedData,
         ]
 
         input_tokens =  (await model.count_tokens_async(prompt_parts)).total_tokens
-        
         response = await model.generate_content_async(prompt_parts)
-
         output_tokens = (await model.count_tokens_async(response.text)).total_tokens
         print(f"Image Extraction - Input Tokens: {input_tokens}, Output Tokens: {output_tokens}")
         # Attempt to parse as JSON first, then fallback to plain text
