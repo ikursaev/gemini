@@ -3,7 +3,7 @@ from pydantic_settings import BaseSettings
 class Settings(BaseSettings):
     GOOGLE_API_KEY: str
     PORT: int = 8000 # Default port
-    MODEL_NAME: str = "gemini-pro"
+    MODEL_NAME: str = "gemini-2.5-flash-lite-preview-06-17"
     LOG_FILE_PATH: str = "app/app.log"
     UPLOAD_FOLDER_NAME: str = "uploads"
     HOST: str = "0.0.0.0"
