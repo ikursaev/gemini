@@ -24,16 +24,19 @@ from app.config import settings
 
 load_dotenv()
 
-app = FastAPI()
+from contextlib import asynccontextmanager
 
-@app.on_event("startup")
-async def startup():
+@asynccontextmanager
+async def lifespan(app: FastAPI):
     r = redis.asyncio.Redis(host="localhost", port=6379, db=0, encoding="utf-8", decode_responses=True)
     await FastAPILimiter.init(r)
+    yield
+
+app = FastAPI(lifespan=lifespan)
 
 # Configure the Gemini API
 genai.configure(api_key=settings.GOOGLE_API_KEY)
-model = genai.GenerativeModel('gemini-2.5-flash-lite-preview-06-17')
+model = genai.GenerativeModel('gemini-2.5-flash-lite-preview-06-17', generation_config=genai.GenerationConfig(temperature=0))
 
 UPLOAD_FOLDER = "uploads"
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
@@ -50,7 +53,7 @@ async def extract_content_from_image(image_bytes: bytes) -> ExtractedData:
     try:
         image = Image.open(io.BytesIO(image_bytes))
         response = await model.generate_content_async([
-            "Extract all text and any tables from this image. Return beautifully formatted text as markdown, add formatting that better represents the title and contents of the text. If tables are present, represent them as a JSON array of objects with 'headers' and 'rows' keys.",
+            "Extract all text and any tables from this image. If tables are present, represent them as a JSON array of objects with 'headers' and 'rows' keys.",
             image
         ])
         # Attempt to parse as JSON first, then fallback to plain text
@@ -113,8 +116,7 @@ async def read_root():
 @app.post("/uploadfile/", dependencies=[Depends(RateLimiter(times=150, seconds=60))])
 async def create_upload_file(file: UploadFile = File(...)):
     file_bytes = await file.read()
-    if not file_bytes:
-        raise HTTPException(status_code=400, detail="Uploaded file is empty.")
+
     mime_type = magic.from_buffer(file_bytes, mime=True)
 
     if mime_type == "application/pdf":
@@ -131,11 +133,11 @@ async def create_upload_file(file: UploadFile = File(...)):
 
     with open("app/templates/result.html", "r") as f:
         html_content = f.read()
-    
+
     # Replace placeholder with actual content and file_id
     html_content = html_content.replace("{{ text }}", markdown_content)
     html_content = html_content.replace("{{ file_id }}", file_id)
-    
+
     return HTMLResponse(content=html_content)
 
 @app.get("/download_markdown/{file_id}", dependencies=[Depends(RateLimiter(times=150, seconds=60))])
@@ -143,7 +145,7 @@ async def download_markdown(file_id: str):
     markdown_content = temp_storage.get(file_id)
     if not markdown_content:
         raise HTTPException(status_code=404, detail="File not found or expired.")
-    
+
     return StreamingResponse(
         io.BytesIO(markdown_content.encode("utf-8")),
         media_type="text/markdown",
