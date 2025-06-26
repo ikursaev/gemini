@@ -13,6 +13,9 @@ from dotenv import load_dotenv
 from fastapi_limiter import FastAPILimiter
 from fastapi_limiter.depends import RateLimiter
 import redis
+import uuid
+
+temp_storage = {}
 
 # Add the project root to the Python path
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -110,6 +113,8 @@ async def read_root():
 @app.post("/uploadfile/", dependencies=[Depends(RateLimiter(times=150, seconds=60))])
 async def create_upload_file(file: UploadFile = File(...)):
     file_bytes = await file.read()
+    if not file_bytes:
+        raise HTTPException(status_code=400, detail="Uploaded file is empty.")
     mime_type = magic.from_buffer(file_bytes, mime=True)
 
     if mime_type == "application/pdf":
@@ -120,6 +125,25 @@ async def create_upload_file(file: UploadFile = File(...)):
         raise HTTPException(status_code=400, detail=f"Unsupported file type: {mime_type}")
 
     markdown_content = generate_markdown(extracted_data_list)
+    # Store the markdown content temporarily and generate a unique ID
+    file_id = str(uuid.uuid4())
+    temp_storage[file_id] = markdown_content
+
+    with open("app/templates/result.html", "r") as f:
+        html_content = f.read()
+    
+    # Replace placeholder with actual content and file_id
+    html_content = html_content.replace("{{ text }}", markdown_content)
+    html_content = html_content.replace("{{ file_id }}", file_id)
+    
+    return HTMLResponse(content=html_content)
+
+@app.get("/download_markdown/{file_id}", dependencies=[Depends(RateLimiter(times=150, seconds=60))])
+async def download_markdown(file_id: str):
+    markdown_content = temp_storage.get(file_id)
+    if not markdown_content:
+        raise HTTPException(status_code=404, detail="File not found or expired.")
+    
     return StreamingResponse(
         io.BytesIO(markdown_content.encode("utf-8")),
         media_type="text/markdown",

@@ -1,6 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Extracted Content</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: #f4f7f6;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start; /* Align to top for scrollable content */
+            min-height: 100vh;
+            margin: 0;
+            color: #333;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        .container {
+            background-color: #ffffff;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+            text-align: left;
+            width: 100%;
+            max-width: 800px;
+            margin-top: 20px;
+        }
+        h1 {
+            color: #2c3e50;
+            margin-bottom: 30px;
+            font-weight: 700;
+            font-size: 2em;
+            text-align: center;
+        }
+        pre {
+            background-color: #e9ecef;
+            padding: 20px;
+            border-radius: 8px;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            font-size: 1em;
+            line-height: 1.6;
+            color: #333;
+            max-height: 70vh; /* Limit height for scrollability */
+            overflow-y: auto;
+            border: 1px solid #dee2e6;
+        }
+        .back-link {
+            display: inline-block;
+            margin-top: 30px;
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            transition: background-color 0.3s ease;
+        }
+        .back-link:hover {
+            background-color: #0056b3;
+        }
 
-<!doctype html>
-<title>Extracted Text</title>
-<h1>Extracted Text</h1>
-<pre>{{ text }}</pre>
-<a href="/">Upload another file</a>
+        @media (prefers-color-scheme: dark) {
+            body {
+                background-color: #2c2c2c;
+                color: #e0e0e0;
+            }
+            .container {
+                background-color: #3c3c3c;
+                box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            }
+            h1 {
+                color: #f0f0f0;
+            }
+            pre {
+                background-color: #444;
+                color: #e0e0e0;
+                border-color: #555;
+            }
+            .back-link {
+                background-color: #0056b3;
+            }
+            .back-link:hover {
+                background-color: #003f80;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Extracted Content</h1>
+        <pre>{{ text }}</pre>
+        <a href="/" class="back-link">Upload another file</a>
+        <a href="/download_markdown/{{ file_id }}" class="back-link" style="margin-left: 10px;">Download Markdown</a>
+    </div>
+</body>
+</html>
