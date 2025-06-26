@@ -49,29 +49,39 @@ class ExtractedData(BaseModel):
     text: str = ""
     tables: list[Table] = []
 
-async def extract_content_from_image(image_bytes: bytes) -> ExtractedData:
+async def extract_content_from_image(image_bytes: bytes) -> tuple[ExtractedData, int, int]:
     try:
         image = Image.open(io.BytesIO(image_bytes))
-        response = await model.generate_content_async([
+
+        prompt_parts = [
             "Extract all text and any tables from this image. If tables are present, represent them as a JSON array of objects with 'headers' and 'rows' keys.",
             image
-        ])
+        ]
+
+        input_tokens =  (await model.count_tokens_async(prompt_parts)).total_tokens
+        
+        response = await model.generate_content_async(prompt_parts)
+
+        output_tokens = (await model.count_tokens_async(response.text)).total_tokens
+        print(f"Image Extraction - Input Tokens: {input_tokens}, Output Tokens: {output_tokens}")
         # Attempt to parse as JSON first, then fallback to plain text
         try:
             data = response.text.strip()
             if data.startswith("```json") and data.endswith("```"):
                 json_str = data[7:-3].strip()
                 parsed_data = json.loads(json_str)
-                return ExtractedData(text=parsed_data.get("text", ""), tables=[Table(**t) for t in parsed_data.get("tables", [])])
+                return ExtractedData(text=parsed_data.get("text", ""), tables=[Table(**t) for t in parsed_data.get("tables", [])]), input_tokens, output_tokens
             else:
-                return ExtractedData(text=response.text)
+                return ExtractedData(text=response.text), input_tokens, output_tokens
         except json.JSONDecodeError:
-            return ExtractedData(text=response.text)
+            return ExtractedData(text=response.text), input_tokens, output_tokens
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error processing image: {e}")
 
 async def extract_content_from_pdf(pdf_bytes: bytes) -> list[ExtractedData]:
     extracted_pages_data = []
+    total_input_tokens = 0
+    total_output_tokens = 0
     try:
         doc = fitz.open(stream=pdf_bytes, filetype="pdf")
         for page_num in range(len(doc)):
@@ -84,10 +94,13 @@ async def extract_content_from_pdf(pdf_bytes: bytes) -> list[ExtractedData]:
                 xref = img[0]
                 base_image = doc.extract_image(xref)
                 image_bytes = base_image["image"]
-                extracted_image_data = await extract_content_from_image(image_bytes)
+                extracted_image_data, img_input_tokens, img_output_tokens = await extract_content_from_image(image_bytes)
                 text_content += "\n--- Image Text ---\n" + extracted_image_data.text
                 tables_content.extend(extracted_image_data.tables)
+                total_input_tokens += img_input_tokens
+                total_output_tokens += img_output_tokens
             extracted_pages_data.append(ExtractedData(text=text_content, tables=tables_content))
+        print(f"PDF Extraction - Total Input Tokens: {total_input_tokens}, Total Output Tokens: {total_output_tokens}")
         return extracted_pages_data
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error processing PDF: {e}")
@@ -122,7 +135,9 @@ async def create_upload_file(file: UploadFile = File(...)):
     if mime_type == "application/pdf":
         extracted_data_list = await extract_content_from_pdf(file_bytes)
     elif mime_type.startswith("image/"):
-        extracted_data_list = [await extract_content_from_image(file_bytes)] # Wrap in list for consistency
+        extracted_data, input_tokens, output_tokens = await extract_content_from_image(file_bytes)
+        extracted_data_list = [extracted_data] # Wrap in list for consistency
+        print(f"Total Input Tokens: {input_tokens}, Total Output Tokens: {output_tokens}")
     else:
         raise HTTPException(status_code=400, detail=f"Unsupported file type: {mime_type}")
 
