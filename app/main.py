@@ -2,6 +2,7 @@ import io
 import json
 import sys
 import uuid
+import logging
 from pathlib import Path
 from contextlib import asynccontextmanager
 
@@ -18,6 +19,17 @@ from pydantic import BaseModel
 
 from app.config import settings
 
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(levelname)s - %(message)s',
+    handlers=[
+        logging.FileHandler(settings.LOG_FILE_PATH),
+        logging.StreamHandler()
+    ]
+)
+logger = logging.getLogger(__name__)
+
 temp_storage = {}
 
 # Add the project root to the Python path
@@ -29,7 +41,7 @@ load_dotenv()
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     r = redis.asyncio.Redis(
-        host="localhost", port=6379, db=0, encoding="utf-8", decode_responses=True
+        host=settings.REDIS_HOST, port=6379, db=0, encoding="utf-8", decode_responses=True
     )
     await FastAPILimiter.init(r)
     yield
@@ -41,11 +53,11 @@ app = FastAPI(lifespan=lifespan)
 genai.configure(api_key=settings.GOOGLE_API_KEY)
 client = genai.Client()
 model = genai.GenerativeModel(
-    "gemini-2.5-flash-lite-preview-06-17",
+    settings.MODEL_NAME,
     generation_config=genai.GenerationConfig(temperature=0),
 )
 
-UPLOAD_FOLDER = "uploads"
+UPLOAD_FOLDER = settings.UPLOAD_FOLDER_NAME
 Path(UPLOAD_FOLDER).mkdir(exist_ok=True)
 
 
@@ -73,7 +85,7 @@ async def extract_content_from_image(
         input_tokens = (await model.count_tokens_async(prompt_parts)).total_tokens
         response = await model.generate_content_async(prompt_parts)
         output_tokens = (await model.count_tokens_async(response.text)).total_tokens
-        print(
+        logger.info(
             f"Image Extraction - Input Tokens: {input_tokens}, Output Tokens: {output_tokens}"
         )
         # Attempt to parse as JSON first, then fallback to plain text
@@ -151,7 +163,7 @@ async def create_upload_file(file: UploadFile = File(...)):
             file_bytes
         )
         extracted_data_list = [extracted_data]  # Wrap in list for consistency
-        print(
+        logger.info(
             f"Total Input Tokens: {input_tokens}, Total Output Tokens: {output_tokens}"
         )
     else:
@@ -193,4 +205,4 @@ async def download_markdown(file_id: str):
 if __name__ == "__main__":
     import uvicorn
 
-    uvicorn.run(app, host="0.0.0.0", port=settings.PORT)
+    uvicorn.run(app, host=settings.HOST, port=settings.PORT)
