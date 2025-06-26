@@ -6,7 +6,7 @@ import logging
 from pathlib import Path
 from contextlib import asynccontextmanager
 
-import google.generativeai as genai
+from google import genai
 import magic
 import redis
 from dotenv import load_dotenv
@@ -50,12 +50,7 @@ async def lifespan(app: FastAPI):
 app = FastAPI(lifespan=lifespan)
 
 # Configure the Gemini API
-genai.configure(api_key=settings.GOOGLE_API_KEY)
-client = genai.Client()
-model = genai.GenerativeModel(
-    settings.MODEL_NAME,
-    generation_config=genai.GenerationConfig(temperature=0),
-)
+client = genai.Client(api_key=settings.GOOGLE_API_KEY)
 
 UPLOAD_FOLDER = settings.UPLOAD_FOLDER_NAME
 Path(UPLOAD_FOLDER).mkdir(exist_ok=True)
@@ -82,9 +77,22 @@ async def extract_content_from_image(
             image,
         ]
 
-        input_tokens = (await model.count_tokens_async(prompt_parts)).total_tokens
-        response = await model.generate_content_async(prompt_parts)
-        output_tokens = (await model.count_tokens_async(response.text)).total_tokens
+        input_tokens = (await client.aio.models.count_tokens(
+            model=settings.MODEL_NAME,
+            contents=[prompt_parts],
+        ))
+        response = await client.aio.models.generate_content(
+            model=settings.MODEL_NAME,
+            contents=[prompt_parts],
+            config=genai.types.GenerateContentConfig(
+                system_instruction="Extract all text and any tables from this image. Represent tables as a JSON array of objects with 'headers' and 'rows' keys.",
+                temperature=0,
+            ),
+        )
+        output_tokens = (await client.aio.models.count_tokens(
+            model=settings.MODEL_NAME,
+            contents=[response.text],
+        ))
         logger.info(
             f"Image Extraction - Input Tokens: {input_tokens}, Output Tokens: {output_tokens}"
         )
@@ -147,15 +155,31 @@ async def create_upload_file(file: UploadFile = File(...)):
         # Upload the file to Gemini
         uploaded_file = client.files.upload(file=temp_pdf_path)
 
+        input_tokens = (await client.aio.models.count_tokens(
+            model=settings.MODEL_NAME,
+            contents=[uploaded_file],
+        ))
+
         # Generate content from the uploaded file
-        response = await model.generate_content_async(
-            contents=[
-                uploaded_file,
-                "Extract all text and any tables from this PDF. If tables are present, represent them as a JSON array of objects with 'headers' and 'rows' keys.",
-            ],
+        response = await client.aio.models.generate_content(
+            model=settings.MODEL_NAME,
+            contents=[uploaded_file],
+            config=genai.types.GenerateContentConfig(
+                system_instruction="Extract all text and any tables from this PDF. Represent tables as a JSON array of objects with 'headers' and 'rows' keys.",
+                temperature=0,
+            ),
         )
         # Clean up the temporary file
         temp_pdf_path.unlink()
+
+        output_tokens = (await client.aio.models.count_tokens(
+            model=settings.MODEL_NAME,
+            contents=[response.text],
+        ))
+
+        logger.info(
+            f"Image Extraction - Input Tokens: {input_tokens}, Output Tokens: {output_tokens}"
+        )
 
         extracted_data_list = [ExtractedData(text=response.text)]
     elif mime_type.startswith("image/"):
