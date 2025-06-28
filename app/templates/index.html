@@ -123,16 +123,183 @@
 </head>
 <body>
     <div class="container">
-        <h1>Document Extractor</h1>
-        <div id="error-message" style="color: red; margin-bottom: 15px;"></div>
-        <form action="/uploadfile/" method="post" enctype="multipart/form-data" class="upload-form" onsubmit="return validateForm()">
-            <div class="file-input-wrapper">
-                <input type="file" name="file" id="file-upload" onchange="updateFileName(this)">
-                <label for="file-upload" class="file-input-button">Choose a file...</label>
+        <!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gemini File Uploader</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 font-sans antialiased">
+    <div class="container mx-auto p-4">
+        <div class="flex justify-between items-center mb-4">
+            <h1 class="text-3xl font-bold">Upload a File to Gemini</h1>
+            <div class="relative">
+                <button id="tasks-dropdown-button" class="bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded inline-flex items-center">
+                    <svg class="w-4 h-4 mr-2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                        <path d="M10 3a1 1 0 00-1 1v4a1 1 0 002 0V4a1 1 0 00-1-1zM4 10a1 1 0 011-1h4a1 1 0 010 2H5a1 1 0 01-1-1zM13 10a1 1 0 011-1h4a1 1 0 010 2h-4a1 1 0 01-1-1zM10 16a1 1 0 00-1 1v4a1 1 0 002 0v-4a1 1 0 00-1-1z"/>
+                    </svg>
+                    Tasks
+                </button>
+                <div id="tasks-dropdown" class="hidden absolute right-0 mt-2 w-64 bg-white rounded-md shadow-lg z-10">
+                    <ul id="tasks-list" class="py-1">
+                        <!-- Tasks will be loaded here -->
+                        <li class="px-4 py-2 text-gray-500">No tasks running.</li>
+                    </ul>
+                </div>
             </div>
-            <span id="file-name" class="file-name">No file chosen</span>
-            <input type="submit" value="Extract Content" class="submit-button">
+        </div>
+
+        <form id="upload-form" class="bg-white p-6 rounded-lg shadow-md">
+            <input type="file" name="file" id="file-input" class="block w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 cursor-pointer focus:outline-none">
+            <button type="submit" class="mt-4 px-4 py-2 bg-blue-500 text-white rounded-lg cursor-pointer hover:bg-blue-600">
+                Upload
+            </button>
         </form>
+
+        <div id="result-display" class="mt-8 bg-white p-6 rounded-lg shadow-md hidden">
+            <h2 class="text-2xl font-bold mb-4">Extracted Content</h2>
+            <div id="extracted-markdown" class="prose max-w-none"></div>
+            <a id="download-link" class="mt-4 inline-block px-4 py-2 bg-blue-500 text-white rounded-lg cursor-pointer hover:bg-blue-600">Download Markdown</a>
+        </div>
+    </div>
+
+    <script>
+        const tasksDropdownButton = document.getElementById('tasks-dropdown-button');
+        const tasksDropdown = document.getElementById('tasks-dropdown');
+        const tasksList = document.getElementById('tasks-list');
+        const uploadForm = document.getElementById('upload-form');
+        const fileInput = document.getElementById('file-input');
+        const resultDisplay = document.getElementById('result-display');
+        const extractedMarkdown = document.getElementById('extracted-markdown');
+        const downloadLink = document.getElementById('download-link');
+
+        tasksDropdownButton.addEventListener('click', () => {
+            tasksDropdown.classList.toggle('hidden');
+            if (!tasksDropdown.classList.contains('hidden')) {
+                fetchTasks();
+            }
+        });
+
+        // Close the dropdown if clicked outside
+        window.addEventListener('click', (event) => {
+            if (!tasksDropdownButton.contains(event.target) && !tasksDropdown.contains(event.target)) {
+                tasksDropdown.classList.add('hidden');
+            }
+        });
+
+        uploadForm.addEventListener('submit', async (event) => {
+            event.preventDefault();
+            if (!fileInput.files.length) {
+                alert('Please select a file to upload.');
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('file', fileInput.files[0]);
+
+            try {
+                const response = await fetch('/uploadfile/', {
+                    method: 'POST',
+                    body: formData
+                });
+                const data = await response.json();
+                if (response.ok) {
+                    alert(`Task ${data.task_id} submitted successfully! Status: ${data.status}`);
+                    fileInput.value = ''; // Clear the input
+                    fetchTasks(); // Refresh tasks list
+                } else {
+                    alert(`Error: ${data.detail || 'Unknown error'}`);
+                }
+            } catch (error) {
+                console.error('Upload error:', error);
+                alert('An error occurred during upload.');
+            }
+        });
+
+        async function fetchTasks() {
+            try {
+                const response = await fetch('/api/tasks');
+                const tasks = await response.json();
+                tasksList.innerHTML = ''; // Clear current list
+
+                if (tasks.length === 0) {
+                    tasksList.innerHTML = '<li class="px-4 py-2 text-gray-500">No tasks running.</li>';
+                    return;
+                }
+
+                tasks.forEach(task => {
+                    const listItem = document.createElement('li');
+                    listItem.className = 'px-4 py-2 hover:bg-gray-100 border-b border-gray-200 last:border-b-0';
+                    let actionsHtml = '';
+
+                    if (task.status === 'SUCCESS') {
+                        actionsHtml = `<button class="bg-green-500 hover:bg-green-600 text-white text-xs py-1 px-2 rounded" onclick="viewTaskResult('${task.id}')">View Result</button>`;
+                        downloadLink.href = `/download_markdown/${task.id}`;
+                    } else if (task.status === 'PENDING' || task.status === 'STARTED') {
+                        actionsHtml = `<button class="bg-red-500 hover:bg-red-600 text-white text-xs py-1 px-2 rounded" onclick="stopTask('${task.id}')">Stop</button>`;
+                    }
+
+                    listItem.innerHTML = `
+                        <div class="flex justify-between items-center">
+                            <span>${task.id.substring(0, 8)}... (${task.status})</span>
+                            <div>${actionsHtml}</div>
+                        </div>
+                    `;
+                    tasksList.appendChild(listItem);
+                });
+            } catch (error) {
+                console.error('Error fetching tasks:', error);
+                tasksList.innerHTML = '<li class="px-4 py-2 text-red-500">Error loading tasks.</li>';
+            }
+        }
+
+        async function viewTaskResult(taskId) {
+            try {
+                const response = await fetch(`/api/tasks/${taskId}/result`);
+                const data = await response.json();
+                if (response.ok) {
+                    extractedMarkdown.innerHTML = data.markdown;
+                    resultDisplay.classList.remove('hidden');
+                    tasksDropdown.classList.add('hidden'); // Hide dropdown after viewing result
+                } else {
+                    alert(`Error fetching result: ${data.detail || 'Unknown error'}`);
+                }
+            } catch (error) {
+                console.error('Error viewing result:', error);
+                alert('An error occurred while fetching the result.');
+            }
+        }
+
+        async function stopTask(taskId) {
+            if (confirm(`Are you sure you want to stop task ${taskId.substring(0, 8)}...?`)) {
+                try {
+                    const response = await fetch(`/tasks/${taskId}/stop`, {
+                        method: 'POST'
+                    });
+                    const data = await response.json();
+                    if (response.ok) {
+                        alert(data.message);
+                        fetchTasks(); // Refresh tasks list
+                    } else {
+                        alert(`Error stopping task: ${data.detail || 'Unknown error'}`);
+                    }
+                } catch (error) {
+                    console.error('Error stopping task:', error);
+                    alert('An error occurred while stopping the task.');
+                }
+            }
+        }
+
+        // Fetch tasks every 5 seconds
+        setInterval(fetchTasks, 5000);
+
+        // Initial fetch
+        fetchTasks();
+    </script>
+</body>
+</html>
     </div>
 
     <script>

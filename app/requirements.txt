@@ -12,3 +12,5 @@ python-multipart
 fastapi-limiter
 redis
 ruff
+jinja2
+celery
