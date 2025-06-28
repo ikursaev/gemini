@@ -72,20 +72,15 @@ async def extract_content_from_image(
     try:
         image = Image.open(io.BytesIO(image_bytes))
 
-        prompt_parts = [
-            "Extract all text and any tables from this image. If tables are present, represent them as a JSON array of objects with 'headers' and 'rows' keys.",
-            image,
-        ]
-
         input_tokens = (await client.aio.models.count_tokens(
             model=settings.MODEL_NAME,
-            contents=[prompt_parts],
+            contents=[image],
         ))
         response = await client.aio.models.generate_content(
             model=settings.MODEL_NAME,
-            contents=[prompt_parts],
+            contents=[image],
             config=genai.types.GenerateContentConfig(
-                system_instruction="Extract all text and any tables from this image. Represent tables as a JSON array of objects with 'headers' and 'rows' keys.",
+                system_instruction="Extract all text from this image. Represent any tables as a JSON array of objects with 'headers' and 'rows' keys.",
                 temperature=0,
             ),
         )
@@ -165,7 +160,7 @@ async def create_upload_file(file: UploadFile = File(...)):
             model=settings.MODEL_NAME,
             contents=[uploaded_file],
             config=genai.types.GenerateContentConfig(
-                system_instruction="Extract all text and any tables from this PDF. Represent tables as a JSON array of objects with 'headers' and 'rows' keys.",
+                system_instruction="Extract all text from this PDF. Represent any tables as a JSON array of objects with 'headers' and 'rows' keys.",
                 temperature=0,
             ),
         )
@@ -178,7 +173,7 @@ async def create_upload_file(file: UploadFile = File(...)):
         ))
 
         logger.info(
-            f"Image Extraction - Input Tokens: {input_tokens}, Output Tokens: {output_tokens}"
+            f"PDF Extraction - Input Tokens: {input_tokens}, Output Tokens: {output_tokens}"
         )
 
         extracted_data_list = [ExtractedData(text=response.text)]
