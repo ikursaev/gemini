@@ -18,16 +18,16 @@ celery = Celery(
 )
 
 @celery.task(bind=True)
-def process_file(self, file_path: str, mime_type: str):
+async def process_file(self, file_path: str, mime_type: str):
     logger.info(f"Starting task {self.request.id} for file {file_path} with mime type {mime_type}")
     try:
         path = Path(file_path)
         if mime_type == "application/pdf":
-            extracted_data_list, input_tokens, output_tokens = extract_content_from_pdf(path)
+            extracted_data_list, input_tokens, output_tokens = await extract_content_from_pdf(path)
         elif mime_type.startswith("image/"):
             with open(path, "rb") as f:
                 file_bytes = f.read()
-            extracted_data, input_tokens, output_tokens = extract_content_from_image(file_bytes)
+            extracted_data, input_tokens, output_tokens = await extract_content_from_image(file_bytes)
             extracted_data_list = [extracted_data]
         else:
             logger.error(f"Task {self.request.id}: Unsupported file type: {mime_type}")
