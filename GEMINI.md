@@ -15,7 +15,7 @@ Always add required apps to the dockerfile's installation block, and ensure Cele
 
 - Added a bounce animation to the "Tasks" button when a new file is uploaded, indicating a new task.
 - Implemented counters on the "Tasks" button to display the number of pending and completed tasks.
-- Replaced the file upload button with a drag-and-drop area that also allows clicking to select files.
+- Enhanced the file upload area to support both drag-and-drop and click-to-select functionalities, improving user interaction for file uploads.
 - Integrated Tailwind CSS into the project's build process. To compile Tailwind CSS, run `npm run build:tailwind`.
 - Removed custom CSS from `app/static/input.css` to rely solely on Tailwind CSS for styling.
 - Applied inline styles to SVG elements in `app/templates/index.html` to ensure correct icon sizing.
