@@ -1,19 +1,18 @@
 import io
-import sys
-import uuid
 import logging
-from pathlib import Path
+import sys
 from contextlib import asynccontextmanager
+from pathlib import Path
 
 import magic
 import redis
+from celery.result import AsyncResult
 from dotenv import load_dotenv
-from fastapi import Depends, FastAPI, File, HTTPException, UploadFile, Request
-from fastapi.responses import HTMLResponse, StreamingResponse, JSONResponse
+from fastapi import Depends, FastAPI, File, HTTPException, Request, UploadFile
+from fastapi.responses import HTMLResponse, JSONResponse, StreamingResponse
 from fastapi.templating import Jinja2Templates
 from fastapi_limiter import FastAPILimiter
 from fastapi_limiter.depends import RateLimiter
-from celery.result import AsyncResult
 
 from app.config import settings
 from app.tasks import process_file

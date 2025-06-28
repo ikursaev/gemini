@@ -3,8 +3,8 @@ import json
 import logging
 from pathlib import Path
 
-from google import genai
 from fastapi import HTTPException
+from google import genai
 from PIL import Image
 from pydantic import BaseModel
 

@@ -1,8 +1,13 @@
-from celery import Celery
-from app.services import extract_content_from_image, extract_content_from_pdf, generate_markdown, ExtractedData, Table
-import magic
-from pathlib import Path
 import logging
+from pathlib import Path
+
+from celery import Celery
+
+from app.services import (
+    extract_content_from_image,
+    extract_content_from_pdf,
+    generate_markdown,
+)
 
 logger = logging.getLogger(__name__)
 
