@@ -40,16 +40,11 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
   && apt-get clean \
   && rm -rf /var/lib/apt/lists/*
 
-# Download the latest installer
+# Install uv system-wide
 ADD https://astral.sh/uv/install.sh /uv-installer.sh
-
-# Run the installer then remove it
 RUN sh /uv-installer.sh && rm /uv-installer.sh
-
-# Ensure the installed binary is on the `PATH`
-ENV PATH="/root/.local/bin/:$PATH"
-
-RUN uv venv
+# Move uv to system location accessible by all users
+RUN mv /root/.local/bin/uv /usr/local/bin/uv
 
 # Set up npm global package folder
 RUN mkdir -p /usr/local/share/npm-global \

@@ -59,7 +59,7 @@
           "**/venv/**": true,
           "**/.venv/**": true
         },
-        "python.defaultInterpreterPath": "/usr/bin/python3",
+        "python.defaultInterpreterPath": "/workspace/.venv/bin/python",
         "python.formatting.provider": "none",
         "[python]": {
           "editor.defaultFormatter": "charliermarsh.ruff",

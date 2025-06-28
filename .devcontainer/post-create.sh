@@ -1,7 +1,7 @@
-#!/bin/bash
+﻿#!/bin/bash
 set -e
 
-echo "🚀 Setting up Gemini CLI development environment..."
+echo "ðŸš€ Setting up Gemini CLI development environment..."
 
 # Colors for output
 RED='\033[0;31m'
@@ -27,25 +27,28 @@ print_error() {
     echo -e "${RED}[ERROR]${NC} $1"
 }
 
-# Set up Python virtual environment
-print_status "Setting up Python virtual environment..."
-if [ ! -d "venv" ]; then
-    python3 -m venv venv
-    print_success "Created Python virtual environment"
+# Set up Python virtual environment with uv
+print_status "Setting up Python virtual environment with uv..."
+if [ ! -d ".venv" ]; then
+    uv venv
+    print_success "Created Python virtual environment with uv"
 else
     print_success "Python virtual environment already exists"
 fi
 
-# Activate virtual environment and upgrade pip
-source venv/bin/activate
-python -m pip install --upgrade pip
-print_success "Virtual environment activated and pip upgraded"
+# Install dependencies with uv
+print_status "Installing Python dependencies with uv..."
+uv sync
+print_success "Dependencies installed with uv"
+
+# Activate virtual environment
+source .venv/bin/activate
+print_success "Virtual environment activated"
 
 # Start Celery worker in the background
 print_status "Starting Celery worker..."
 celery -A app.tasks worker --loglevel=info &> celery_worker.log &
 print_success "Celery worker started in the background."
-
 
 # Install dependencies (only if package.json exists)
 if [ -f "package.json" ]; then
@@ -141,7 +144,7 @@ fi
 
 # Display useful information
 echo ""
-echo "🎉 Development environment ready!"
+echo "ðŸŽ‰ Development environment ready!"
 echo ""
 
 # Show Node.js specific information only if package.json exists
@@ -157,30 +160,30 @@ if [ -f "package.json" ]; then
     echo ""
     print_success "Development workflow:"
     echo "  1. Set up your GEMINI_API_KEY environment variable"
-    echo "  2. Activate Python venv: source venv/bin/activate"
+    echo "  2. Activate Python venv: source .venv/bin/activate"
     echo "  3. Run 'npm run build' to build the project"
     echo "  4. Run 'npm start' to start the CLI"
     echo "  5. Or run 'npx @google/gemini-cli' to test the published version"
     echo ""
     print_success "VS Code is configured with:"
-    echo "  ✅ TypeScript support"
-    echo "  ✅ ESLint integration"
-    echo "  ✅ Prettier formatting"
-    echo "  ✅ Debug configuration"
-    echo "  ✅ Git integration"
-    echo "  ✅ Python virtual environment"
+    echo "  âœ… TypeScript support"
+    echo "  âœ… ESLint integration"
+    echo "  âœ… Prettier formatting"
+    echo "  âœ… Debug configuration"
+    echo "  âœ… Git integration"
+    echo "  âœ… Python virtual environment"
 else
     print_success "Development workflow:"
     echo "  1. Set up your GEMINI_API_KEY environment variable"
-    echo "  2. Activate Python venv: source venv/bin/activate"
+    echo "  2. Activate Python venv: source .venv/bin/activate"
     echo "  3. Use 'gemini-cli' command to interact with Gemini API"
     echo "  4. Start coding in your preferred language"
     echo ""
     print_success "VS Code is configured with:"
-    echo "  ✅ Python support"
-    echo "  ✅ Git integration"
-    echo "  ✅ Python virtual environment"
-    echo "  ✅ Gemini CLI globally installed"
+    echo "  âœ… Python support"
+    echo "  âœ… Git integration"
+    echo "  âœ… Python virtual environment"
+    echo "  âœ… Gemini CLI globally installed"
 fi
 echo ""
 
@@ -188,4 +191,4 @@ if [ -z "$GEMINI_API_KEY" ]; then
     print_warning "Don't forget to set up your GEMINI_API_KEY!"
 fi
 
-print_success "Happy coding! 🚀"
+print_success "Happy coding! ðŸš€"
