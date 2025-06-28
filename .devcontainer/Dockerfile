@@ -9,8 +9,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
   python3-pip \
   libmagic-dev \
   redis-server \
-  # Install uv
-  curl -LsSf https://astral.sh/uv/install.sh | sh \
   make \
   g++ \
   # Development utilities
@@ -42,9 +40,16 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
   && apt-get clean \
   && rm -rf /var/lib/apt/lists/*
 
-# Install Python dependencies
-RUN /root/.cargo/bin/uv venv && \
-    /root/.cargo/bin/uv pip install -r app/requirements.txt
+# Download the latest installer
+ADD https://astral.sh/uv/install.sh /uv-installer.sh
+
+# Run the installer then remove it
+RUN sh /uv-installer.sh && rm /uv-installer.sh
+
+# Ensure the installed binary is on the `PATH`
+ENV PATH="/root/.local/bin/:$PATH"
+
+RUN uv venv
 
 # Set up npm global package folder
 RUN mkdir -p /usr/local/share/npm-global \
