@@ -11,10 +11,10 @@
   "license": "ISC",
   "description": "",
   "devDependencies": {
-    "@tailwindcss/postcss": "^4.1.11",
-    "autoprefixer": "^10.4.21",
-    "postcss": "^8.5.6",
-    "postcss-cli": "^11.0.1",
-    "tailwindcss": "^4.1.11"
+    "@tailwindcss/postcss": "latest",
+    "autoprefixer": "latest",
+    "postcss": "latest",
+    "postcss-cli": "latest",
+    "tailwindcss": "latest"
   }
 }
