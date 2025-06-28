@@ -59,15 +59,22 @@ async def read_root(request: Request):
 
 @app.post("/uploadfile/", dependencies=[Depends(RateLimiter(times=150, seconds=60))])
 async def create_upload_file(file: UploadFile = File(...)):
-    file_path = Path(UPLOAD_FOLDER) / file.filename
-    with open(file_path, "wb") as buffer:
-        buffer.write(await file.read())
+    try:
+        file_path = Path(UPLOAD_FOLDER) / file.filename
+        # Ensure the UPLOAD_FOLDER exists
+        Path(UPLOAD_FOLDER).mkdir(parents=True, exist_ok=True)
 
-    mime_type = magic.from_file(str(file_path), mime=True)
+        with open(file_path, "wb") as buffer:
+            buffer.write(await file.read())
 
-    task = process_file.delay(str(file_path), mime_type)
-    await redis_client.lpush(TASK_LIST_KEY, task.id)  # Store task ID in Redis
-    return JSONResponse({"task_id": task.id, "status": task.status})
+        mime_type = magic.from_file(str(file_path), mime=True)
+
+        task = process_file.delay(str(file_path), mime_type)
+        await redis_client.lpush(TASK_LIST_KEY, task.id)  # Store task ID in Redis
+        return JSONResponse({"task_id": task.id, "status": task.status})
+    except Exception as e:
+        logger.error(f"Error during file upload or task submission: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=f"Failed to process file: {e}")
 
 
 @app.get("/api/tasks")

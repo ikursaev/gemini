@@ -22,9 +22,11 @@ This repository includes a complete development container setup for the Google G
 
 ### Development Environment
 - **Node.js 20** - Latest LTS version matching project requirements
+- **Python 3** - With `uv` for dependency management
 - **TypeScript** - Full IntelliSense and debugging support
 - **ESLint & Prettier** - Code linting and formatting
 - **Git & GitHub CLI** - Version control and GitHub integration
+- **Celery Worker** - Automatically started in the background for task processing
 
 ### VS Code Extensions
 - TypeScript language support
@@ -72,8 +74,11 @@ git config --global user.email "your.email@example.com"
 ### Building the Project
 
 ```bash
-# Install dependencies (done automatically on container start)
+# Install Node.js dependencies (done automatically on container start)
 npm ci
+
+# Install Python dependencies (done automatically on container start)
+uv pip install -r app/requirements.txt
 
 # Build the project
 npm run build

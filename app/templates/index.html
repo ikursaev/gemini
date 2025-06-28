@@ -4,166 +4,86 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Document Extractor</title>
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body {
-            font-family: 'Roboto', sans-serif;
-            background-color: #f4f7f6;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            margin: 0;
-            color: #333;
+            font-family: 'Inter', sans-serif;
         }
-        .container {
-            background-color: #ffffff;
-            padding: 40px;
-            border-radius: 12px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
-            text-align: center;
-            width: 100%;
-            max-width: 500px;
+        /* Custom scrollbar for the task list */
+        #tasks-list::-webkit-scrollbar {
+            width: 8px;
         }
-        h1 {
-            color: #2c3e50;
-            margin-bottom: 30px;
-            font-weight: 700;
-            font-size: 2em;
+        #tasks-list::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
         }
-        .upload-form {
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-            align-items: center;
+        #tasks-list::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 10px;
         }
-        .file-input-wrapper {
-            position: relative;
-            overflow: hidden;
-            display: inline-block;
-            width: 100%;
-        }
-        .file-input-wrapper input[type=file] {
-            font-size: 100px;
-            position: absolute;
-            left: 0;
-            top: 0;
-            opacity: 0;
-            cursor: pointer;
-        }
-        .file-input-button {
-            border: 2px dashed #a0a0a0;
-            padding: 20px 30px;
-            border-radius: 8px;
-            cursor: pointer;
-            background-color: #f9f9f9;
-            color: #555;
-            font-size: 1.1em;
-            transition: all 0.3s ease;
-            width: calc(100% - 44px); /* Account for padding and border */
-            display: block;
-        }
-        .file-input-button:hover {
-            background-color: #e9e9e9;
-            border-color: #777;
-        }
-        .file-name {
-            margin-top: 10px;
-            font-size: 0.9em;
-            color: #666;
-        }
-        .submit-button {
-            background-color: #007bff;
-            color: white;
-            padding: 12px 25px;
-            border: none;
-            border-radius: 8px;
-            font-size: 1.1em;
-            cursor: pointer;
-            transition: background-color 0.3s ease;
-            width: 100%;
-            box-sizing: border-box;
-        }
-        .submit-button:hover {
-            background-color: #0056b3;
-        }
-
-        @media (prefers-color-scheme: dark) {
-            body {
-                background-color: #2c2c2c;
-                color: #e0e0e0;
-            }
-            .container {
-                background-color: #3c3c3c;
-                box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-            }
-            h1 {
-                color: #f0f0f0;
-            }
-            .file-input-button {
-                border-color: #666;
-                background-color: #444;
-                color: #ccc;
-            }
-            .file-input-button:hover {
-                background-color: #555;
-                border-color: #888;
-            }
-            .file-name {
-                color: #bbb;
-            }
-            .submit-button {
-                background-color: #0056b3;
-            }
-            .submit-button:hover {
-                background-color: #003f80;
-            }
+        #tasks-list::-webkit-scrollbar-thumb:hover {
+            background: #555;
         }
     </style>
 </head>
-<body>
-    <div class="container">
-        <!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gemini File Uploader</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-</head>
-<body class="bg-gray-100 font-sans antialiased">
-    <div class="container mx-auto p-4">
-        <div class="flex justify-between items-center mb-4">
-            <h1 class="text-3xl font-bold">Upload a File to Gemini</h1>
-            <div class="relative">
-                <button id="tasks-dropdown-button" class="bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded inline-flex items-center">
-                    <svg class="w-4 h-4 mr-2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                        <path d="M10 3a1 1 0 00-1 1v4a1 1 0 002 0V4a1 1 0 00-1-1zM4 10a1 1 0 011-1h4a1 1 0 010 2H5a1 1 0 01-1-1zM13 10a1 1 0 011-1h4a1 1 0 010 2h-4a1 1 0 01-1-1zM10 16a1 1 0 00-1 1v4a1 1 0 002 0v-4a1 1 0 00-1-1z"/>
-                    </svg>
-                    Tasks
-                </button>
-                <div id="tasks-dropdown" class="hidden absolute right-0 mt-2 w-64 bg-white rounded-md shadow-lg z-10">
-                    <ul id="tasks-list" class="py-1">
-                        <!-- Tasks will be loaded here -->
-                        <li class="px-4 py-2 text-gray-500">No tasks running.</li>
-                    </ul>
-                </div>
+<body class="bg-gray-50 text-gray-800 antialiased flex flex-col min-h-screen">
+
+    <!-- Header -->
+    <header class="bg-white shadow-sm py-4 px-6 flex justify-between items-center">
+        <h1 class="text-2xl font-semibold text-gray-900">Document Extractor</h1>
+        <div class="relative">
+            <button id="tasks-dropdown-button" class="bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium py-2 px-4 rounded-lg inline-flex items-center transition duration-200 ease-in-out">
+                <svg class="w-5 h-5 mr-2 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path></svg>
+                Tasks
+            </button>
+            <div id="tasks-dropdown" class="hidden absolute right-0 mt-2 w-72 bg-white rounded-lg shadow-xl z-20 border border-gray-200">
+                <ul id="tasks-list" class="py-2 max-h-60 overflow-y-auto">
+                    <!-- Tasks will be loaded here -->
+                    <li class="px-4 py-2 text-gray-500 text-sm">No tasks running.</li>
+                </ul>
             </div>
         </div>
+    </header>
 
-        <form id="upload-form" class="bg-white p-6 rounded-lg shadow-md">
-            <input type="file" name="file" id="file-input" class="block w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 cursor-pointer focus:outline-none">
-            <button type="submit" class="mt-4 px-4 py-2 bg-blue-500 text-white rounded-lg cursor-pointer hover:bg-blue-600">
-                Upload
-            </button>
-        </form>
-
-        <div id="result-display" class="mt-8 bg-white p-6 rounded-lg shadow-md hidden">
-            <h2 class="text-2xl font-bold mb-4">Extracted Content</h2>
-            <div id="extracted-markdown" class="prose max-w-none"></div>
-            <a id="download-link" class="mt-4 inline-block px-4 py-2 bg-blue-500 text-white rounded-lg cursor-pointer hover:bg-blue-600">Download Markdown</a>
+    <!-- Main Content -->
+    <main class="flex-grow container mx-auto px-4 py-8 flex flex-col items-center justify-center">
+        <div class="bg-white p-8 rounded-xl shadow-lg w-full max-w-md border border-gray-200">
+            <h2 class="text-2xl font-semibold text-gray-900 mb-6 text-center">Upload Document for Extraction</h2>
+            <form id="upload-form" class="space-y-6">
+                <div>
+                    <label for="file-input" class="block text-sm font-medium text-gray-700 mb-2">Select a file</label>
+                    <input type="file" name="file" id="file-input" class="block w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 cursor-pointer focus:outline-none focus:border-blue-500 focus:ring focus:ring-blue-500 focus:ring-opacity-50">
+                </div>
+                <button type="submit" class="w-full flex justify-center items-center px-4 py-2 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition duration-200 ease-in-out">
+                    <svg id="upload-icon" class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
+                    <svg id="loading-spinner" class="animate-spin -ml-1 mr-3 h-5 w-5 text-white hidden" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    Upload
+                </button>
+            </form>
         </div>
-    </div>
+
+        <!-- Result Display Area -->
+        <div id="result-display" class="mt-12 bg-white p-8 rounded-xl shadow-lg w-full max-w-3xl border border-gray-200 hidden">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-2xl font-semibold text-gray-900">Extracted Content</h2>
+                <a id="download-link" class="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 font-medium rounded-lg inline-flex items-center transition duration-200 ease-in-out">
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l3-3m-3 3l-3-3m2-8h7a2 2 0 012 2v7a2 2 0 01-2 2h-7a2 2 0 01-2-2V5a2 2 0 012-2z"></path></svg>
+                    Download Markdown
+                </a>
+            </div>
+            <div id="extracted-markdown" class="prose max-w-none text-gray-700 leading-relaxed">
+                <!-- Markdown content will be rendered here -->
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="py-4 text-center text-gray-500 text-sm">
+        Powered by Gemini & Tailwind CSS
+    </footer>
 
     <script>
         const tasksDropdownButton = document.getElementById('tasks-dropdown-button');
@@ -174,8 +94,14 @@
         const resultDisplay = document.getElementById('result-display');
         const extractedMarkdown = document.getElementById('extracted-markdown');
         const downloadLink = document.getElementById('download-link');
+        const uploadButton = uploadForm.querySelector('button[type="submit"]');
+        const uploadIcon = document.getElementById('upload-icon');
+        const loadingSpinner = document.getElementById('loading-spinner');
 
-        tasksDropdownButton.addEventListener('click', () => {
+        let currentTasks = {}; // To keep track of tasks and their statuses
+
+        tasksDropdownButton.addEventListener('click', (event) => {
+            event.stopPropagation(); // Prevent click from closing dropdown immediately
             tasksDropdown.classList.toggle('hidden');
             if (!tasksDropdown.classList.contains('hidden')) {
                 fetchTasks();
@@ -196,6 +122,10 @@
                 return;
             }
 
+            uploadButton.disabled = true;
+            uploadIcon.classList.add('hidden');
+            loadingSpinner.classList.remove('hidden');
+
             const formData = new FormData();
             formData.append('file', fileInput.files[0]);
 
@@ -206,15 +136,20 @@
                 });
                 const data = await response.json();
                 if (response.ok) {
-                    alert(`Task ${data.task_id} submitted successfully! Status: ${data.status}`);
+                    // Add new task to currentTasks and refresh display
+                    currentTasks[data.task_id] = { id: data.task_id, status: data.status };
+                    updateTasksList();
                     fileInput.value = ''; // Clear the input
-                    fetchTasks(); // Refresh tasks list
                 } else {
                     alert(`Error: ${data.detail || 'Unknown error'}`);
                 }
             } catch (error) {
                 console.error('Upload error:', error);
                 alert('An error occurred during upload.');
+            } finally {
+                uploadButton.disabled = false;
+                uploadIcon.classList.remove('hidden');
+                loadingSpinner.classList.add('hidden');
             }
         });
 
@@ -222,37 +157,46 @@
             try {
                 const response = await fetch('/api/tasks');
                 const tasks = await response.json();
-                tasksList.innerHTML = ''; // Clear current list
-
-                if (tasks.length === 0) {
-                    tasksList.innerHTML = '<li class="px-4 py-2 text-gray-500">No tasks running.</li>';
-                    return;
-                }
-
+                currentTasks = {}; // Reset and rebuild
                 tasks.forEach(task => {
-                    const listItem = document.createElement('li');
-                    listItem.className = 'px-4 py-2 hover:bg-gray-100 border-b border-gray-200 last:border-b-0';
-                    let actionsHtml = '';
-
-                    if (task.status === 'SUCCESS') {
-                        actionsHtml = `<button class="bg-green-500 hover:bg-green-600 text-white text-xs py-1 px-2 rounded" onclick="viewTaskResult('${task.id}')">View Result</button>`;
-                        downloadLink.href = `/download_markdown/${task.id}`;
-                    } else if (task.status === 'PENDING' || task.status === 'STARTED') {
-                        actionsHtml = `<button class="bg-red-500 hover:bg-red-600 text-white text-xs py-1 px-2 rounded" onclick="stopTask('${task.id}')">Stop</button>`;
-                    }
-
-                    listItem.innerHTML = `
-                        <div class="flex justify-between items-center">
-                            <span>${task.id.substring(0, 8)}... (${task.status})</span>
-                            <div>${actionsHtml}</div>
-                        </div>
-                    `;
-                    tasksList.appendChild(listItem);
+                    currentTasks[task.id] = task;
                 });
+                updateTasksList();
             } catch (error) {
                 console.error('Error fetching tasks:', error);
-                tasksList.innerHTML = '<li class="px-4 py-2 text-red-500">Error loading tasks.</li>';
+                tasksList.innerHTML = '<li class="px-4 py-2 text-red-500 text-sm">Error loading tasks.</li>';
             }
+        }
+
+        function updateTasksList() {
+            const taskIds = Object.keys(currentTasks);
+            tasksList.innerHTML = ''; // Clear current list
+
+            if (taskIds.length === 0) {
+                tasksList.innerHTML = '<li class="px-4 py-2 text-gray-500 text-sm">No tasks running.</li>';
+                return;
+            }
+
+            taskIds.forEach(task => {
+                const listItem = document.createElement('li');
+                listItem.className = 'px-4 py-2 hover:bg-gray-50 border-b border-gray-100 last:border-b-0';
+                let actionsHtml = '';
+
+                if (task.status === 'SUCCESS') {
+                    actionsHtml = `<button class="bg-green-500 hover:bg-green-600 text-white text-xs py-1 px-2 rounded transition duration-200 ease-in-out" onclick="viewTaskResult('${task.id}')">View Result</button>`;
+                } else if (task.status === 'PENDING' || task.status === 'STARTED') {
+                    actionsHtml = `<button class="bg-red-500 hover:bg-red-600 text-white text-xs py-1 px-2 rounded transition duration-200 ease-in-out" onclick="stopTask('${task.id}')">Stop</button>`;
+                }
+
+                listItem.innerHTML = `
+                    <div class="flex justify-between items-center text-sm">
+                        <span class="font-medium">${task.id.substring(0, 8)}...</span>
+                        <span class="text-gray-600">(${task.status})</span>
+                        <div>${actionsHtml}</div>
+                    </div>
+                `;
+                tasksList.appendChild(listItem);
+            });
         }
 
         async function viewTaskResult(taskId) {
@@ -261,8 +205,11 @@
                 const data = await response.json();
                 if (response.ok) {
                     extractedMarkdown.innerHTML = data.markdown;
+                    downloadLink.href = `/download_markdown/${taskId}`;
                     resultDisplay.classList.remove('hidden');
                     tasksDropdown.classList.add('hidden'); // Hide dropdown after viewing result
+                    // Scroll to result display
+                    resultDisplay.scrollIntoView({ behavior: 'smooth' });
                 } else {
                     alert(`Error fetching result: ${data.detail || 'Unknown error'}`);
                 }
@@ -297,31 +244,6 @@
 
         // Initial fetch
         fetchTasks();
-    </script>
-</body>
-</html>
-    </div>
-
-    <script>
-        function updateFileName(input) {
-            const fileNameSpan = document.getElementById('file-name');
-            if (input.files && input.files.length > 0) {
-                fileNameSpan.textContent = input.files[0].name;
-            } else {
-                fileNameSpan.textContent = 'No file chosen';
-            }
-        }
-
-        function validateForm() {
-            const fileInput = document.getElementById('file-upload');
-            const errorMessageDiv = document.getElementById('error-message');
-            if (fileInput.files.length === 0) {
-                errorMessageDiv.textContent = 'Please select a file before extracting content.';
-                return false; // Prevent form submission
-            }
-            errorMessageDiv.textContent = ''; // Clear error message on successful validation
-            return true; // Allow form submission
-        }
     </script>
 </body>
 </html>

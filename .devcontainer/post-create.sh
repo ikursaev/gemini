@@ -41,6 +41,12 @@ source venv/bin/activate
 python -m pip install --upgrade pip
 print_success "Virtual environment activated and pip upgraded"
 
+# Start Celery worker in the background
+print_status "Starting Celery worker..."
+celery -A app.tasks worker --loglevel=info &> celery_worker.log &
+print_success "Celery worker started in the background."
+
+
 # Install dependencies (only if package.json exists)
 if [ -f "package.json" ]; then
     print_status "Installing npm dependencies..."
