@@ -111,3 +111,282 @@
         const dropArea = document.getElementById('drop-area');
         const pendingTasksCountSpan = document.getElementById('pending-tasks-count');
         const completedTasksCountSpan = document.getElementById('completed-tasks-count');
+
+        let tasks = {}; // Store tasks by ID
+
+        // --- Dropdown Toggle ---
+        tasksDropdownButton.addEventListener('click', () => {
+            tasksDropdown.classList.toggle('hidden');
+        });
+
+        // Close dropdown if clicked outside
+        window.addEventListener('click', (event) => {
+            if (!tasksDropdownButton.contains(event.target) && !tasksDropdown.contains(event.target)) {
+                tasksDropdown.classList.add('hidden');
+            }
+        });
+
+        // --- File Upload Logic ---
+        dropArea.addEventListener('click', () => fileInput.click());
+
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            dropArea.addEventListener(eventName, preventDefaults, false);
+            document.body.addEventListener(eventName, preventDefaults, false);
+        });
+
+        ['dragenter', 'dragover'].forEach(eventName => {
+            dropArea.addEventListener(eventName, highlight, false);
+        });
+
+        ['dragleave', 'drop'].forEach(eventName => {
+            dropArea.addEventListener(eventName, unhighlight, false);
+        });
+
+        dropArea.addEventListener('drop', handleDrop, false);
+
+        function preventDefaults(e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+
+        function highlight() {
+            dropArea.classList.add('border-blue-500', 'bg-blue-50');
+        }
+
+        function unhighlight() {
+            dropArea.classList.remove('border-blue-500', 'bg-blue-50');
+        }
+
+        function handleDrop(e) {
+            const dt = e.dataTransfer;
+            const files = dt.files;
+            handleFiles(files);
+        }
+
+        fileInput.addEventListener('change', (event) => {
+            handleFiles(event.target.files);
+        });
+
+        async function handleFiles(files) {
+            if (files.length === 0) return;
+
+            const file = files[0];
+            const formData = new FormData();
+            formData.append('file', file);
+
+            uploadButton.disabled = true;
+            uploadButton.querySelector('#upload-icon').classList.add('hidden');
+            uploadButton.querySelector('#loading-spinner').classList.remove('hidden');
+
+            try {
+                const response = await fetch('/uploadfile/', {
+                    method: 'POST',
+                    body: formData,
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const data = await response.json();
+                console.log('Upload successful:', data);
+                if (data.task_id) {
+                    addTaskToList(data.task_id, file.name, data.status);
+                    triggerBounceAnimation();
+                }
+            } catch (error) {
+                console.error('Upload failed:', error);
+                alert('File upload failed: ' + error.message);
+            } finally {
+                uploadButton.disabled = false;
+                uploadButton.querySelector('#upload-icon').classList.remove('hidden');
+                uploadButton.querySelector('#loading-spinner').classList.add('hidden');
+                fileInput.value = ''; // Clear the input
+            }
+        }
+
+        // --- Task Management and UI Updates ---
+        function addTaskToList(taskId, fileName, status) {
+            tasks[taskId] = { id: taskId, name: fileName, status: status };
+            updateTasksListUI();
+            updateTaskCounters();
+        }
+
+        function updateTasksListUI() {
+            tasksList.innerHTML = ''; // Clear existing list
+            const taskIds = Object.keys(tasks).sort((a, b) => {
+                // Sort by status: PENDING first, then SUCCESS, then other statuses
+                const statusOrder = { 'PENDING': 1, 'STARTED': 2, 'SUCCESS': 3, 'FAILURE': 4, 'REVOKED': 5 };
+                return (statusOrder[tasks[a].status] || 99) - (statusOrder[tasks[b].status] || 99);
+            });
+
+            if (taskIds.length === 0) {
+                tasksList.innerHTML = '<li class="px-4 py-2 text-gray-500 text-sm">No tasks running.</li>';
+                return;
+            }
+
+            taskIds.forEach(taskId => {
+                const task = tasks[taskId];
+                let statusClass = '';
+                let statusText = task.status;
+                let actionButton = '';
+
+                switch (task.status) {
+                    case 'PENDING':
+                    case 'STARTED':
+                        statusClass = 'text-yellow-600';
+                        actionButton = `<button data-task-id="${task.id}" class="stop-task-button ml-2 text-red-500 hover:text-red-700 text-xs">Stop</button>`;
+                        break;
+                    case 'SUCCESS':
+                        statusClass = 'text-green-600';
+                        actionButton = `<button data-task-id="${task.id}" class="view-result-button ml-2 text-blue-500 hover:text-blue-700 text-xs">View</button>`;
+                        break;
+                    case 'FAILURE':
+                        statusClass = 'text-red-600';
+                        break;
+                    case 'REVOKED':
+                        statusClass = 'text-gray-500';
+                        statusText = 'STOPPED';
+                        break;
+                    default:
+                        statusClass = 'text-gray-500';
+                }
+
+                const listItem = document.createElement('li');
+                listItem.className = 'px-4 py-2 border-b border-gray-100 last:border-b-0 flex justify-between items-center';
+                listItem.innerHTML = `
+                    <div>
+                        <p class="text-sm font-medium text-gray-800">${task.name}</p>
+                        <p class="text-xs ${statusClass}">${statusText}</p>
+                    </div>
+                    <div>
+                        ${actionButton}
+                    </div>
+                `;
+                tasksList.appendChild(listItem);
+            });
+
+            // Add event listeners for new buttons
+            tasksList.querySelectorAll('.stop-task-button').forEach(button => {
+                button.addEventListener('click', async (e) => {
+                    const taskId = e.target.dataset.taskId;
+                    await stopTask(taskId);
+                });
+            });
+
+            tasksList.querySelectorAll('.view-result-button').forEach(button => {
+                button.addEventListener('click', async (e) => {
+                    const taskId = e.target.dataset.taskId;
+                    await viewTaskResult(taskId);
+                });
+            });
+        }
+
+        function updateTaskCounters() {
+            const pending = Object.values(tasks).filter(task => task.status === 'PENDING' || task.status === 'STARTED').length;
+            const completed = Object.values(tasks).filter(task => task.status === 'SUCCESS').length;
+
+            if (pending > 0) {
+                pendingTasksCountSpan.textContent = pending;
+                pendingTasksCountSpan.classList.remove('hidden');
+            } else {
+                pendingTasksCountSpan.classList.add('hidden');
+            }
+
+            if (completed > 0) {
+                completedTasksCountSpan.textContent = completed;
+                completedTasksCountSpan.classList.remove('hidden');
+            } else {
+                completedTasksCountSpan.classList.add('hidden');
+            }
+        }
+
+        async function fetchAllTasks() {
+            try {
+                const response = await fetch('/api/tasks');
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                const fetchedTasks = await response.json();
+                fetchedTasks.forEach(fetchedTask => {
+                    // Only update if status has changed or task is new
+                    if (!tasks[fetchedTask.id] || tasks[fetchedTask.id].status !== fetchedTask.status) {
+                        // If task is new, we need its name. This is a limitation of current API.
+                        // For now, we'll just add it with its ID if name is unknown.
+                        // In a real app, you'd fetch task details or include name in initial task creation response.
+                        if (!tasks[fetchedTask.id]) {
+                            tasks[fetchedTask.id] = { id: fetchedTask.id, name: `Task ${fetchedTask.id.substring(0, 4)}...`, status: fetchedTask.status };
+                        } else {
+                            tasks[fetchedTask.id].status = fetchedTask.status;
+                        }
+                    }
+                });
+                updateTasksListUI();
+                updateTaskCounters();
+            } catch (error) {
+                console.error('Failed to fetch tasks:', error);
+            }
+        }
+
+        async function stopTask(taskId) {
+            try {
+                const response = await fetch(`/tasks/${taskId}/stop`, { method: 'POST' });
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                const data = await response.json();
+                console.log(data.message);
+                // Optimistically update status, will be confirmed by next poll
+                if (tasks[taskId]) {
+                    tasks[taskId].status = 'REVOKED';
+                    updateTasksListUI();
+                    updateTaskCounters();
+                }
+            } catch (error) {
+                console.error('Failed to stop task:', error);
+                alert('Failed to stop task: ' + error.message);
+            }
+        }
+
+        async function viewTaskResult(taskId) {
+            try {
+                const response = await fetch(`/api/tasks/${taskId}/result`);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                const data = await response.json();
+                if (data.markdown) {
+                    extractedMarkdown.innerHTML = marked.parse(data.markdown);
+                    downloadLink.href = `/download_markdown/${taskId}`;
+                    resultDisplay.classList.remove('hidden');
+                    // Scroll to result display
+                    resultDisplay.scrollIntoView({ behavior: 'smooth' });
+                }
+            } catch (error) {
+                console.error('Failed to fetch task result:', error);
+                alert('Failed to fetch task result: ' + error.message);
+            }
+        }
+
+        function triggerBounceAnimation() {
+            tasksDropdownButton.classList.remove('bounce-once'); // Reset animation
+            void tasksDropdownButton.offsetWidth; // Trigger reflow
+            tasksDropdownButton.classList.add('bounce-once'); // Add animation
+        }
+
+        // Initial fetch and polling
+        fetchAllTasks();
+        setInterval(fetchAllTasks, 5000); // Poll every 5 seconds
+
+        // Initialize marked for markdown rendering
+        // Load marked library dynamically or ensure it's included in your HTML
+        if (typeof marked === 'undefined') {
+            const script = document.createElement('script');
+            script.src = 'https://cdn.jsdelivr.net/npm/marked/marked.min.js';
+            script.onload = () => {
+                console.log('Marked library loaded.');
+                // If there's any initial markdown to render, do it here
+            };
+            document.head.appendChild(script);
+        }
+    </script>
