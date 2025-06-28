@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-echo "ðŸš€ Setting up Gemini CLI development environment..."
+echo "Setting up Gemini CLI development environment..."
 
 # Colors for output
 RED='\033[0;31m'
@@ -46,8 +46,12 @@ source .venv/bin/activate
 print_success "Virtual environment activated"
 
 # Start Celery worker in the background
+print_status "Starting Redis server..."
+sudo service redis-server start
+print_success "Redis server started."
+
 print_status "Starting Celery worker..."
-celery -A app.tasks worker --loglevel=info &> celery_worker.log &
+sudo celery -A app.tasks worker --loglevel=info &> celery_worker.log &
 print_success "Celery worker started in the background."
 
 # Install dependencies (only if package.json exists)
@@ -71,20 +75,6 @@ else
     print_warning "No package.json found - skipping npm project operations"
 fi
 
-# Update npm and install Gemini CLI globally
-print_status "Updating npm and installing Gemini CLI..."
-if npm update -g npm 2>/dev/null; then
-    print_success "npm updated successfully"
-else
-    print_warning "npm update failed, but continuing..."
-fi
-
-if npm install -g @google/gemini-cli 2>/dev/null; then
-    print_success "Gemini CLI installed globally"
-else
-    print_warning "Gemini CLI installation failed, but continuing..."
-fi
-
 # Set up git configuration
 print_status "Setting up Git configuration..."
 
@@ -96,17 +86,6 @@ elif [ ! -f ~/.gitconfig ]; then
     print_warning "No Git configuration found"
 fi
 
-# Check git configuration
-if ! git config user.name >/dev/null 2>&1; then
-    print_warning "Git user.name not configured"
-    echo "  Run: git config --global user.name 'Your Name'"
-fi
-
-if ! git config user.email >/dev/null 2>&1; then
-    print_warning "Git user.email not configured"
-    echo "  Run: git config --global user.email 'your.email@example.com'"
-fi
-
 # Set up SSH if available
 if [ -d /tmp/.ssh-host ]; then
     cp -r /tmp/.ssh-host ~/.ssh
@@ -115,36 +94,17 @@ if [ -d /tmp/.ssh-host ]; then
     print_success "Copied SSH keys from host"
 fi
 
-# Check for environment variables
-print_status "Checking environment configuration..."
-
-if [ -z "$GEMINI_API_KEY" ]; then
-    print_warning "GEMINI_API_KEY not set"
-    echo "  You can set it by:"
-    echo "  1. Adding it to your .bashrc: export GEMINI_API_KEY='your_key_here'"
-    echo "  2. Or create a .env file in the project root"
-    echo "  3. Get your API key from: https://aistudio.google.com/apikey"
-fi
-
 # Create useful scripts
 print_status "Creating development helpers..."
 
-# Create a simple .env template
-if [ ! -f ".env.example" ]; then
-    cat > .env.example << 'EOF'
-# Gemini API Configuration
-GEMINI_API_KEY=your_api_key_here
-
-# Development settings
-NODE_ENV=development
-DEBUG=1
-EOF
-    print_success "Created .env.example template"
+# .env.example template is now created during Docker build
+if [ -f ".env.example" ]; then
+    print_success ".env.example template available"
 fi
 
 # Display useful information
 echo ""
-echo "ðŸŽ‰ Development environment ready!"
+echo "Development environment ready!"
 echo ""
 
 # Show Node.js specific information only if package.json exists
@@ -185,10 +145,5 @@ else
     echo "  âœ… Python virtual environment"
     echo "  âœ… Gemini CLI globally installed"
 fi
-echo ""
 
-if [ -z "$GEMINI_API_KEY" ]; then
-    print_warning "Don't forget to set up your GEMINI_API_KEY!"
-fi
-
-print_success "Happy coding! ðŸš€"
+print_success "Happy coding!"

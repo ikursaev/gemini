@@ -57,11 +57,31 @@ USER node
 ENV NPM_CONFIG_PREFIX=/usr/local/share/npm-global
 ENV PATH=$PATH:/usr/local/share/npm-global/bin
 
+# Update npm and install global packages
+RUN npm update -g npm 2>/dev/null || echo "npm update failed, continuing..." \
+  && npm install -g @google/gemini-cli 2>/dev/null || echo "Gemini CLI installation failed, continuing..."
+
 # Set up workspace
 WORKDIR /workspace
 
-# Configure git to be safe with the workspace directory
-RUN git config --global --add safe.directory /workspace
+# Configure git to be safe with the workspace directory and set up basic git config
+RUN git config --global --add safe.directory /workspace \
+  && git config --global init.defaultBranch main \
+  && git config --global pull.rebase false
+
+# Create SSH directory structure
+RUN mkdir -p ~/.ssh && chmod 700 ~/.ssh
+
+# Create Python virtual environment structure
+RUN mkdir -p /workspace/.venv
+
+# Create .env.example template
+RUN echo "# Gemini API Configuration" > /workspace/.env.example && \
+    echo "GEMINI_API_KEY=your_api_key_here" >> /workspace/.env.example && \
+    echo "" >> /workspace/.env.example && \
+    echo "# Development settings" >> /workspace/.env.example && \
+    echo "NODE_ENV=development" >> /workspace/.env.example && \
+    echo "DEBUG=1" >> /workspace/.env.example
 
 # Set up shell environment
 RUN echo 'source /etc/bash_completion' >> ~/.bashrc \

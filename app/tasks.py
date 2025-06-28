@@ -1,3 +1,5 @@
+import asyncio
+import functools
 import logging
 from pathlib import Path
 
@@ -17,7 +19,15 @@ celery = Celery(
     backend="redis://localhost:6379/0"
 )
 
-@celery.task(bind=True)
+def async_to_sync(func):
+    @functools.wraps(func)
+    def wrapped(*args, **kwargs):
+        return asyncio.run(func(*args, **kwargs))
+
+    return wrapped
+
+@celery.task(bind=True, acks_late=True, reject_on_worker_lost=True)
+@async_to_sync
 async def process_file(self, file_path: str, mime_type: str):
     logger.info(f"Starting task {self.request.id} for file {file_path} with mime type {mime_type}")
     try:
