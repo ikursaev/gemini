@@ -94,7 +94,6 @@ async def extract_content_from_pdf(
                 temperature=0,
             ),
         )
-        
 
         output_tokens = (await client.aio.models.count_tokens(
             model=settings.MODEL_NAME,
