@@ -1,11 +1,11 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Document Extractor</title>
     <link href="/static/output.css" rel="stylesheet">
-    
+
     <style>
         /* Custom scrollbar for the task list */
         #tasks-list::-webkit-scrollbar {
@@ -15,12 +15,21 @@
             background: #f1f1f1;
             border-radius: 10px;
         }
+        .dark #tasks-list::-webkit-scrollbar-track {
+            background: #374151;
+        }
         #tasks-list::-webkit-scrollbar-thumb {
             background: #888;
             border-radius: 10px;
         }
+        .dark #tasks-list::-webkit-scrollbar-thumb {
+            background: #6b7280;
+        }
         #tasks-list::-webkit-scrollbar-thumb:hover {
             background: #555;
+        }
+        .dark #tasks-list::-webkit-scrollbar-thumb:hover {
+            background: #9ca3af;
         }
 
         @keyframes bounce-once {
@@ -36,22 +45,33 @@
         }
     </style>
 </head>
-<body class="bg-gray-50 text-gray-800 antialiased flex flex-col min-h-screen font-sans">
+<body class="bg-gray-50 dark:bg-gray-900 text-gray-800 dark:text-gray-200 antialiased flex flex-col min-h-screen font-sans transition-colors duration-300">
 
     <!-- Header -->
-    <header class="bg-white shadow-sm py-4 px-6 flex justify-between items-center">
-        <h1 class="text-2xl font-semibold text-gray-900">Document Extractor</h1>
-        <div class="relative">
-            <button id="tasks-dropdown-button" class="bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium py-2 px-4 rounded-lg inline-flex items-center transition duration-200 ease-in-out">
-                <svg style="width: 1.25rem; height: 1.25rem;" class="mr-2 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path></svg>
+    <header class="bg-white dark:bg-gray-800 shadow-sm py-4 px-6 flex justify-between items-center transition-colors duration-300">
+        <h1 class="text-2xl font-semibold text-gray-900 dark:text-white">Document Extractor</h1>
+        <div class="flex items-center gap-4">
+            <!-- Dark Mode Toggle -->
+            <button id="theme-toggle" class="p-2 text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors duration-200">
+                <svg id="theme-toggle-dark-icon" class="hidden w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"></path>
+                </svg>
+                <svg id="theme-toggle-light-icon" class="hidden w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                    <path fill-rule="evenodd" d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z" clip-rule="evenodd"></path>
+                </svg>
+            </button>
+
+            <div class="relative">
+            <button id="tasks-dropdown-button" class="bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-200 font-medium py-2 px-4 rounded-lg inline-flex items-center transition duration-200 ease-in-out">
+                <svg style="width: 1.25rem; height: 1.25rem;" class="mr-2 text-gray-500 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path></svg>
                 Tasks
                 <span id="pending-tasks-count" class="ml-2 inline-flex items-center justify-center px-2 py-0.5 text-xs font-bold leading-none text-red-100 bg-red-600 rounded-full hidden">0</span>
                 <span id="completed-tasks-count" class="ml-1 inline-flex items-center justify-center px-2 py-0.5 text-xs font-bold leading-none text-green-100 bg-green-600 rounded-full hidden">0</span>
             </button>
-            <div id="tasks-dropdown" class="hidden absolute right-0 mt-2 w-72 bg-white rounded-lg shadow-xl z-20 border border-gray-200">
+            <div id="tasks-dropdown" class="hidden absolute right-0 mt-2 w-72 bg-white dark:bg-gray-800 rounded-lg shadow-xl z-20 border border-gray-200 dark:border-gray-600 transition-colors duration-300">
                 <ul id="tasks-list" class="py-2 max-h-60 overflow-y-auto">
                     <!-- Tasks will be loaded here -->
-                    <li class="px-4 py-2 text-gray-500 text-sm">No tasks running.</li>
+                    <li class="px-4 py-2 text-gray-500 dark:text-gray-400 text-sm">No tasks running.</li>
                 </ul>
             </div>
         </div>
@@ -59,15 +79,15 @@
 
     <!-- Main Content -->
     <main class="flex-grow container mx-auto px-4 py-8 flex flex-col items-center justify-center">
-        <div class="bg-white p-8 rounded-xl shadow-lg w-full max-w-md border border-gray-200">
-            <h2 class="text-2xl font-semibold text-gray-900 mb-6 text-center">Upload Document for Extraction</h2>
+        <div class="bg-white dark:bg-gray-800 p-8 rounded-xl shadow-lg w-full max-w-md border border-gray-200 dark:border-gray-700 transition-colors duration-300">
+            <h2 class="text-2xl font-semibold text-gray-900 dark:text-white mb-6 text-center">Upload Document for Extraction</h2>
             <form id="upload-form" class="space-y-6">
-                <div id="drop-area" class="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center cursor-pointer hover:border-blue-500 transition duration-200 ease-in-out">
+                <div id="drop-area" class="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-8 text-center cursor-pointer hover:border-blue-500 dark:hover:border-blue-400 transition duration-200 ease-in-out">
                 <input type="file" name="file" id="file-input" class="hidden" accept="application/pdf,image/*">
-                <p class="text-gray-500">Drag and drop your document here, or click to browse</p>
-                <svg style="width: 3rem; height: 3rem;" class="mx-auto mt-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 0115.9 6L16 6a3 3 0 013 3v10a2 2 0 01-2 2H7a2 2 0 01-2-2V16m-2-6l4-4m0 0l4 4m-4-4v12"></path></svg>
+                <p class="text-gray-500 dark:text-gray-400">Drag and drop your document here, or click to browse</p>
+                <svg style="width: 3rem; height: 3rem;" class="mx-auto mt-4 text-gray-400 dark:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 0115.9 6L16 6a3 3 0 013 3v10a2 2 0 01-2 2H7a2 2 0 01-2-2V16m-2-6l4-4m0 0l4 4m-4-4v12"></path></svg>
             </div>
-            <button type="submit" id="upload-button" class="w-full flex justify-center items-center px-4 py-2 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition duration-200 ease-in-out mt-4">
+            <button type="submit" id="upload-button" class="w-full flex justify-center items-center px-4 py-2 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 dark:focus:ring-offset-gray-800 transition duration-200 ease-in-out mt-4">
                 <svg id="upload-icon" style="width: 1.25rem; height: 1.25rem;" class="mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
                 <svg id="loading-spinner" style="width: 1.25rem; height: 1.25rem;" class="animate-spin -ml-1 mr-3 text-white hidden" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                     <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
@@ -79,26 +99,59 @@
         </div>
 
         <!-- Result Display Area -->
-        <div id="result-display" class="mt-12 bg-white p-8 rounded-xl shadow-lg w-full max-w-3xl border border-gray-200 hidden">
+        <div id="result-display" class="mt-12 bg-white dark:bg-gray-800 p-8 rounded-xl shadow-lg w-full max-w-3xl border border-gray-200 dark:border-gray-700 hidden transition-colors duration-300">
             <div class="flex justify-between items-center mb-6">
-                <h2 class="text-2xl font-semibold text-gray-900">Extracted Content</h2>
-                <a id="download-link" class="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 font-medium rounded-lg inline-flex items-center transition duration-200 ease-in-out">
+                <h2 class="text-2xl font-semibold text-gray-900 dark:text-white">Extracted Content</h2>
+                <a id="download-link" class="px-4 py-2 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-200 font-medium rounded-lg inline-flex items-center transition duration-200 ease-in-out">
                     <svg style="width: 1.25rem; height: 1.25rem;" class="mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l3-3m-3 3l-3-3m2-8h7a2 2 0 012 2v7a2 2 0 01-2 2h-7a2 2 0 01-2-2V5a2 2 0 012-2z"></path></svg>
                     Download Markdown
                 </a>
             </div>
-            <div id="extracted-markdown" class="prose max-w-none text-gray-700 leading-relaxed">
+            <div id="extracted-markdown" class="prose max-w-none text-gray-700 dark:text-gray-300 leading-relaxed dark:prose-invert">
                 <!-- Markdown content will be rendered here -->
             </div>
         </div>
     </main>
 
     <!-- Footer -->
-    <footer class="py-4 text-center text-gray-500 text-sm">
+    <footer class="py-4 text-center text-gray-500 dark:text-gray-400 text-sm transition-colors duration-300">
         Powered by Gemini & Tailwind CSS
     </footer>
 
     <script>
+        // Dark mode functionality
+        const themeToggle = document.getElementById('theme-toggle');
+        const darkIcon = document.getElementById('theme-toggle-dark-icon');
+        const lightIcon = document.getElementById('theme-toggle-light-icon');
+        const htmlElement = document.documentElement;
+
+        // Check for saved theme preference or default to light mode
+        const currentTheme = localStorage.getItem('theme') || 'light';
+
+        // Function to update theme
+        function updateTheme(theme) {
+            if (theme === 'dark') {
+                htmlElement.classList.add('dark');
+                darkIcon.classList.add('hidden');
+                lightIcon.classList.remove('hidden');
+            } else {
+                htmlElement.classList.remove('dark');
+                darkIcon.classList.remove('hidden');
+                lightIcon.classList.add('hidden');
+            }
+            localStorage.setItem('theme', theme);
+        }
+
+        // Initialize theme
+        updateTheme(currentTheme);
+
+        // Theme toggle event listener
+        themeToggle.addEventListener('click', () => {
+            const isDark = htmlElement.classList.contains('dark');
+            updateTheme(isDark ? 'light' : 'dark');
+        });
+
+        // Rest of the existing JavaScript
         const tasksDropdownButton = document.getElementById('tasks-dropdown-button');
         const tasksDropdown = document.getElementById('tasks-dropdown');
         const tasksList = document.getElementById('tasks-list');
@@ -150,11 +203,11 @@
         }
 
         function highlight() {
-            dropArea.classList.add('border-blue-500', 'bg-blue-50');
+            dropArea.classList.add('border-blue-500', 'bg-blue-50', 'dark:bg-blue-900/20');
         }
 
         function unhighlight() {
-            dropArea.classList.remove('border-blue-500', 'bg-blue-50');
+            dropArea.classList.remove('border-blue-500', 'bg-blue-50', 'dark:bg-blue-900/20');
         }
 
         function handleDrop(e) {
@@ -221,7 +274,7 @@
             });
 
             if (taskIds.length === 0) {
-                tasksList.innerHTML = '<li class="px-4 py-2 text-gray-500 text-sm">No tasks running.</li>';
+                tasksList.innerHTML = '<li class="px-4 py-2 text-gray-500 dark:text-gray-400 text-sm">No tasks running.</li>';
                 return;
             }
 
@@ -234,29 +287,29 @@
                 switch (task.status) {
                     case 'PENDING':
                     case 'STARTED':
-                        statusClass = 'text-yellow-600';
-                        actionButton = `<button data-task-id="${task.id}" class="stop-task-button ml-2 text-red-500 hover:text-red-700 text-xs">Stop</button>`;
+                        statusClass = 'text-yellow-600 dark:text-yellow-400';
+                        actionButton = `<button data-task-id="${task.id}" class="stop-task-button ml-2 text-red-500 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 text-xs">Stop</button>`;
                         break;
                     case 'SUCCESS':
-                        statusClass = 'text-green-600';
-                        actionButton = `<button data-task-id="${task.id}" class="view-result-button ml-2 text-blue-500 hover:text-blue-700 text-xs">View</button>`;
+                        statusClass = 'text-green-600 dark:text-green-400';
+                        actionButton = `<button data-task-id="${task.id}" class="view-result-button ml-2 text-blue-500 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 text-xs">View</button>`;
                         break;
                     case 'FAILURE':
-                        statusClass = 'text-red-600';
+                        statusClass = 'text-red-600 dark:text-red-400';
                         break;
                     case 'REVOKED':
-                        statusClass = 'text-gray-500';
+                        statusClass = 'text-gray-500 dark:text-gray-400';
                         statusText = 'STOPPED';
                         break;
                     default:
-                        statusClass = 'text-gray-500';
+                        statusClass = 'text-gray-500 dark:text-gray-400';
                 }
 
                 const listItem = document.createElement('li');
-                listItem.className = 'px-4 py-2 border-b border-gray-100 last:border-b-0 flex justify-between items-center';
+                listItem.className = 'px-4 py-2 border-b border-gray-100 dark:border-gray-700 last:border-b-0 flex justify-between items-center';
                 listItem.innerHTML = `
                     <div>
-                        <p class="text-sm font-medium text-gray-800">${task.name}</p>
+                        <p class="text-sm font-medium text-gray-800 dark:text-gray-200">${task.name}</p>
                         <p class="text-xs ${statusClass}">${statusText}</p>
                     </div>
                     <div>

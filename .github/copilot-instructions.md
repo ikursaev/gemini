@@ -1,6 +1,65 @@
+---
+description: "Python coding conventions and guidelines"
+applyTo: "**/*.py"
+---
+
+# Python Coding Conventions
+
+## Python Instructions
+
+- Write clear and concise comments for each function.
+- Ensure functions have descriptive names and include type hints.
+- Provide docstrings following PEP 257 conventions.
+- Use the `typing` module for type annotations (e.g., `List[str]`, `Dict[str, int]`).
+- Break down complex functions into smaller, more manageable functions.
+
+## General Instructions
+
+- Always prioritize readability and clarity.
+- For algorithm-related code, include explanations of the approach used.
+- Write code with good maintainability practices, including comments on why certain design decisions were made.
+- Handle edge cases and write clear exception handling.
+- For libraries or external dependencies, mention their usage and purpose in comments.
+- Use consistent naming conventions and follow language-specific best practices.
+- Write concise, efficient, and idiomatic code that is also easily understandable.
+
+## Code Style and Formatting
+
+- Follow the **PEP 8** style guide for Python.
+- Maintain proper indentation (use 4 spaces for each level of indentation).
+- Ensure lines do not exceed 79 characters.
+- Place function and class docstrings immediately after the `def` or `class` keyword.
+- Use blank lines to separate functions, classes, and code blocks where appropriate.
+
+## Edge Cases and Testing
+
+- Always include test cases for critical paths of the application.
+- Account for common edge cases like empty inputs, invalid data types, and large datasets.
+- Include comments for edge cases and the expected behavior in those cases.
+- Write unit tests for functions and document them with docstrings explaining the test cases.
+
+## Example of Proper Documentation
+
+```python
+def calculate_area(radius: float) -> float:
+    """
+    Calculate the area of a circle given the radius.
+
+    Parameters:
+    radius (float): The radius of the circle.
+
+    Returns:
+    float: The area of the circle, calculated as π * radius^2.
+    """
+    import math
+    return math.pi * radius ** 2
+```
+
+# App Instructions
+
 Use venv from .venv or venv.
 Don't launch the app with the default port. Use the port from the config.
-Run `ruff check` after every change to python files.
+Run `ruff check --fix` after every change to python files.
 Instead of os module use pathlib.
 Use uv for package management
 Adhere to DRY and KISS principles
@@ -11,9 +70,10 @@ Always update GEMINI.md with made changes. For the future developers.
 Always add new packages to pyproject.toml
 Always add required apps to the dockerfile's installation block, and ensure Celery worker is started in post-create.sh
 
-### Recent Improvements (2025-01-03)
+## Recent Improvements (2025-01-03)
 
 **Configuration & Security Enhancements:**
+
 - Added comprehensive configuration management with validation in `app/config.py`
 - Created `.env.example` template with all required environment variables
 - Added file size limits and MIME type validation
@@ -21,6 +81,7 @@ Always add required apps to the dockerfile's installation block, and ensure Cele
 - Added field validation for API key and upload folder
 
 **Code Quality & Structure:**
+
 - Created `app/utils.py` for common utility functions
 - Added comprehensive error handling and logging improvements
 - Implemented health check endpoints (`/health` and `/health/detailed`)
@@ -28,6 +89,7 @@ Always add required apps to the dockerfile's installation block, and ensure Cele
 - Refactored file upload with better validation and cleanup
 
 **Testing & Development:**
+
 - Added comprehensive test suite in `tests/test_app.py`
 - Created pre-commit configuration for code quality
 - Added pytest configuration in `pyproject.toml`
@@ -35,6 +97,7 @@ Always add required apps to the dockerfile's installation block, and ensure Cele
 - Created comprehensive README.md with usage instructions
 
 **Performance & Reliability:**
+
 - Implemented automatic file cleanup after processing
 - Added Redis key expiration for task management
 - Enhanced Celery configuration with proper serialization
@@ -42,12 +105,13 @@ Always add required apps to the dockerfile's installation block, and ensure Cele
 - Added graceful shutdown handling
 
 **Infrastructure:**
+
 - Updated tasks.py to use configuration-based Redis connection
 - Enhanced Docker setup with better development environment
 - Added proper application metadata to FastAPI instance
 - Improved logging configuration with structured format
 
-### UI Enhancements (2025-06-28)
+## UI Enhancements (2025-06-28)
 
 - Added a bounce animation to the "Tasks" button when a new file is uploaded, indicating a new task.
 - Implemented counters on the "Tasks" button to display the number of pending and completed tasks.
@@ -56,28 +120,3 @@ Always add required apps to the dockerfile's installation block, and ensure Cele
 - Removed custom CSS from `app/static/input.css` to rely solely on Tailwind CSS for styling.
 - Applied inline styles to SVG elements in `app/templates/index.html` to ensure correct icon sizing.
 - Reverted `app/static/input.css` to only contain `@tailwind` directives.
-
-### Dark Mode Implementation (2025-07-03)
-
-**Dark Mode Features:**
-- Added a comprehensive dark mode toggle with smooth transitions
-- Implemented persistent theme preference using localStorage
-- Added dark mode variants for all UI components including:
-  - Header, navigation, and buttons
-  - File upload area with drag-and-drop styling
-  - Task list dropdown with proper contrast
-  - Result display area with dark-friendly markdown rendering
-  - Custom scrollbar styling for both light and dark themes
-
-**Technical Implementation:**
-- Updated `tailwind.config.js` to enable class-based dark mode
-- Added dark mode classes throughout the HTML template
-- Implemented JavaScript theme management with localStorage persistence
-- Enhanced custom CSS for scrollbars to support dark mode
-- Added transition animations for smooth theme switching
-- Updated task list styling with proper dark mode color variants
-
-**Usage:**
-- Click the sun/moon icon in the header to toggle between light and dark themes
-- Theme preference is automatically saved and restored on page reload
-- All UI elements adapt seamlessly to the selected theme

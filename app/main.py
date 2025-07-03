@@ -17,66 +17,178 @@ from fastapi_limiter.depends import RateLimiter
 
 from app.config import settings
 from app.tasks import process_file
+from app.utils import validate_file_size, validate_mime_type
+
+# Load environment variables
+load_dotenv()
 
 # Configure logging
 logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s - %(levelname)s - %(message)s",
-    handlers=[logging.FileHandler(settings.LOG_FILE_PATH), logging.StreamHandler()],
+    level=getattr(logging, settings.LOG_LEVEL),
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+    handlers=[
+        logging.FileHandler(settings.LOG_FILE_PATH),
+        logging.StreamHandler(sys.stdout)
+    ],
 )
 logger = logging.getLogger(__name__)
 
 # Add the project root to the Python path
 sys.path.append(str(Path(__file__).resolve().parent.parent))
 
-load_dotenv()
-
-redis_client = redis.asyncio.Redis(
-    host=settings.REDIS_HOST, port=6379, db=0, encoding="utf-8", decode_responses=True
+# Redis client using settings
+redis_client = redis.asyncio.Redis.from_url(
+    settings.redis_url,
+    encoding="utf-8",
+    decode_responses=True
 )
 
 TASK_LIST_KEY = "celery_tasks"  # Redis key to store task IDs
+TASK_TTL = 3600  # Task TTL in seconds (1 hour)
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    """Application lifespan manager."""
+    # Initialize FastAPI Limiter
     await FastAPILimiter.init(redis_client)
+    logger.info("FastAPI Limiter initialized")
+
+    # Ensure upload folder exists
+    upload_path = Path(settings.UPLOAD_FOLDER_NAME)
+    upload_path.mkdir(parents=True, exist_ok=True)
+    logger.info(f"Upload folder created: {upload_path}")
+
     yield
 
+    # Cleanup on shutdown
+    await redis_client.close()
+    logger.info("Application shutdown complete")
 
-app = FastAPI(lifespan=lifespan)
 
-UPLOAD_FOLDER = settings.UPLOAD_FOLDER_NAME
-Path(UPLOAD_FOLDER).mkdir(exist_ok=True)
+app = FastAPI(
+    title="Gemini Document Extractor",
+    description="Extract text and tables from PDFs and images using Google's Gemini AI",
+    version="0.1.0",
+    lifespan=lifespan
+)
 
+# Templates and static files
 templates = Jinja2Templates(directory="app/templates")
-
 app.mount("/static", StaticFiles(directory="app/static"), name="static")
+
+
+@app.get("/health")
+async def health_check():
+    """Health check endpoint."""
+    try:
+        # Check Redis connection
+        await redis_client.ping()
+        return {"status": "healthy", "redis": "connected"}
+    except Exception as e:
+        logger.error(f"Health check failed: {e}")
+        raise HTTPException(status_code=503, detail="Service unavailable")
+
+
+@app.get("/health/detailed")
+async def detailed_health_check():
+    """Detailed health check with component status."""
+    health_status = {
+        "status": "healthy",
+        "components": {}
+    }
+
+    # Check Redis
+    try:
+        await redis_client.ping()
+        health_status["components"]["redis"] = {"status": "healthy"}
+    except Exception as e:
+        health_status["components"]["redis"] = {"status": "unhealthy", "error": str(e)}
+        health_status["status"] = "unhealthy"
+
+    # Check upload folder
+    try:
+        upload_path = Path(settings.UPLOAD_FOLDER_NAME)
+        if upload_path.exists() and upload_path.is_dir():
+            health_status["components"]["upload_folder"] = {"status": "healthy"}
+        else:
+            health_status["components"]["upload_folder"] = {"status": "unhealthy", "error": "Upload folder not accessible"}
+            health_status["status"] = "unhealthy"
+    except Exception as e:
+        health_status["components"]["upload_folder"] = {"status": "unhealthy", "error": str(e)}
+        health_status["status"] = "unhealthy"
+
+    if health_status["status"] == "unhealthy":
+        raise HTTPException(status_code=503, detail=health_status)
+
+    return health_status
 
 
 @app.get("/", response_class=HTMLResponse)
 async def read_root(request: Request):
+    """Main page."""
     return templates.TemplateResponse("index.html", {"request": request})
 
 
 @app.post("/uploadfile/", dependencies=[Depends(RateLimiter(times=150, seconds=60))])
 async def create_upload_file(file: UploadFile = File(...)):
+    """Upload a file for processing with improved error handling and validation."""
     try:
-        file_path = Path(UPLOAD_FOLDER) / file.filename
-        # Ensure the UPLOAD_FOLDER exists
-        Path(UPLOAD_FOLDER).mkdir(parents=True, exist_ok=True)
+        # Validate file size
+        content = await file.read()
+        file_size = len(content)
 
+        # Use utility functions for validation
+        is_valid_size, size_error = validate_file_size(file_size)
+        if not is_valid_size:
+            raise HTTPException(status_code=413 if "exceeds" in size_error else 400, detail=size_error)
+
+        # Validate filename
+        if not file.filename or file.filename.strip() == "":
+            raise HTTPException(status_code=400, detail="No filename provided")
+
+        # Use pathlib for better path handling
+        upload_path = Path(settings.UPLOAD_FOLDER_NAME)
+        upload_path.mkdir(parents=True, exist_ok=True)
+
+        file_path = upload_path / file.filename
+
+        # Write file content
         with open(file_path, "wb") as buffer:
-            buffer.write(await file.read())
+            buffer.write(content)
 
+        # Detect MIME type
         mime_type = magic.from_file(str(file_path), mime=True)
 
+        # Validate MIME type using utility function
+        is_valid_mime, mime_error = validate_mime_type(mime_type)
+        if not is_valid_mime:
+            # Clean up uploaded file
+            file_path.unlink(missing_ok=True)
+            raise HTTPException(status_code=400, detail=mime_error)
+
+        # Submit task for processing
         task = process_file.delay(str(file_path), mime_type)
-        await redis_client.lpush(TASK_LIST_KEY, task.id)  # Store task ID in Redis
-        return JSONResponse({"task_id": task.id, "status": task.status})
+
+        # Store task ID in Redis with TTL
+        await redis_client.lpush(TASK_LIST_KEY, task.id)
+        await redis_client.expire(TASK_LIST_KEY, TASK_TTL)
+
+        logger.info(f"File uploaded successfully: {file.filename}, Task ID: {task.id}, Size: {file_size} bytes")
+
+        return JSONResponse({
+            "task_id": task.id,
+            "status": task.status,
+            "filename": file.filename,
+            "file_size": file_size,
+            "mime_type": mime_type
+        })
+
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(f"Error during file upload or task submission: {e}", exc_info=True)
-        raise HTTPException(status_code=500, detail=f"Failed to process file: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to process file: {str(e)}")
 
 
 @app.get("/api/tasks")
