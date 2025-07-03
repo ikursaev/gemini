@@ -14,6 +14,7 @@ Always add required apps to the dockerfile's installation block, and ensure Cele
 ### Recent Improvements (2025-01-03)
 
 **Configuration & Security Enhancements:**
+
 - Added comprehensive configuration management with validation in `app/config.py`
 - Created `.env.example` template with all required environment variables
 - Added file size limits and MIME type validation
@@ -21,6 +22,7 @@ Always add required apps to the dockerfile's installation block, and ensure Cele
 - Added field validation for API key and upload folder
 
 **Code Quality & Structure:**
+
 - Created `app/utils.py` for common utility functions
 - Added comprehensive error handling and logging improvements
 - Implemented health check endpoints (`/health` and `/health/detailed`)
@@ -28,6 +30,7 @@ Always add required apps to the dockerfile's installation block, and ensure Cele
 - Refactored file upload with better validation and cleanup
 
 **Testing & Development:**
+
 - Added comprehensive test suite in `tests/test_app.py`
 - Created pre-commit configuration for code quality
 - Added pytest configuration in `pyproject.toml`
@@ -35,6 +38,7 @@ Always add required apps to the dockerfile's installation block, and ensure Cele
 - Created comprehensive README.md with usage instructions
 
 **Performance & Reliability:**
+
 - Implemented automatic file cleanup after processing
 - Added Redis key expiration for task management
 - Enhanced Celery configuration with proper serialization
@@ -42,6 +46,7 @@ Always add required apps to the dockerfile's installation block, and ensure Cele
 - Added graceful shutdown handling
 
 **Infrastructure:**
+
 - Updated tasks.py to use configuration-based Redis connection
 - Enhanced Docker setup with better development environment
 - Added proper application metadata to FastAPI instance
@@ -60,6 +65,7 @@ Always add required apps to the dockerfile's installation block, and ensure Cele
 ### Dark Mode Implementation (2025-07-03)
 
 **Dark Mode Features:**
+
 - Added a comprehensive dark mode toggle with smooth transitions
 - Implemented persistent theme preference using localStorage
 - Added dark mode variants for all UI components including:
@@ -70,6 +76,7 @@ Always add required apps to the dockerfile's installation block, and ensure Cele
   - Custom scrollbar styling for both light and dark themes
 
 **Technical Implementation:**
+
 - Updated `tailwind.config.js` to enable class-based dark mode
 - Added dark mode classes throughout the HTML template
 - Implemented JavaScript theme management with localStorage persistence
@@ -78,6 +85,7 @@ Always add required apps to the dockerfile's installation block, and ensure Cele
 - Updated task list styling with proper dark mode color variants
 
 **Usage:**
+
 - Click the sun/moon icon in the header to toggle between light and dark themes
 - Theme preference is automatically saved and restored on page reload
 - All UI elements adapt seamlessly to the selected theme
