@@ -8,7 +8,11 @@ applyTo: "**/*.py"
 ## Python Instructions
 
 - Write clear and concise comments for each function.
-- Ensure functions have descriptive names and include type hints.
+- Ensure functions have descriptive names and i- **Modern Button Design**: Pill-shaped gradient blue button with white text and hover lift effects
+- **Vibrant Colorful Badge System**:
+  - Amber/orange badges with pulsing glow animation for pending tasks
+  - Green gradient badges with scaling hover for successful tasks
+  - Red gradient badges with scaling hover for failed taskse type hints.
 - Provide docstrings following PEP 257 conventions.
 - Use the `typing` module for type annotations (e.g., `List[str]`, `Dict[str, int]`).
 - Break down complex functions into smaller, more manageable functions.
@@ -222,7 +226,7 @@ def calculate_area(radius: float) -> float:
 
 - **Fixed task list persistence**: Enhanced localStorage with better error handling and 24-hour task retention
 - **Added colorful task badges**: Implemented animated badges showing pending (amber), success (green), and error (red) task counts
-- **Modernized Tasks button**: Transformed into a professional button with hover effects, shadows, and smooth transitions
+- **Modernized Tasks button**: Transformed into a pill-shaped gradient blue button with vibrant colorful badges and smooth animations
 - **Enhanced state synchronization**: Improved server-client task state merging with better conflict resolution
 - **Better debugging**: Added comprehensive console logging for task management operations
 
