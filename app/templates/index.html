@@ -10,6 +10,77 @@
       rel="stylesheet"
     />
     <style>
+      /* Fix scrollbar jumping by always showing scrollbar */
+      html {
+        overflow-y: scroll;
+        scrollbar-gutter: stable;
+      }
+
+      /* Ensure full dark mode coverage */
+      html,
+      body {
+        background-color: inherit;
+        color: inherit;
+        transition: background-color 0.3s ease, color 0.3s ease;
+      }
+
+      /* Prevent layout shifts from scrollbar - Enhanced */
+      body {
+        margin-right: calc(-1 * (100vw - 100%));
+        padding-right: calc(100vw - 100%);
+      }
+
+      /* Global box-sizing */
+      *, *::before, *::after {
+        box-sizing: border-box;
+      }
+
+      /* Additional dark mode coverage */
+      .dark {
+        color-scheme: dark;
+      }
+
+      /* Ensure all elements inherit dark mode properly */
+      .dark * {
+        border-color: inherit;
+      }
+
+      /* Force dark mode on html element */
+      html.dark {
+        background: #111827;
+        color: #f9fafb;
+      }
+
+      /* Ensure body inherits from html in dark mode */
+      html.dark body {
+        background: inherit;
+        color: inherit;
+      }
+
+      /* Dark mode for any missed elements */
+      .dark h1, .dark h2, .dark h3, .dark h4, .dark h5, .dark h6 {
+        color: #f9fafb;
+      }
+
+      .dark p, .dark span, .dark div {
+        color: inherit;
+      }
+
+      /* Scrollbar styling for dark mode */
+      .dark ::-webkit-scrollbar {
+        width: 8px;
+        background: #1f2937;
+      }
+
+      .dark ::-webkit-scrollbar-thumb {
+        background: #4b5563;
+        border-radius: 4px;
+      }
+
+      .dark ::-webkit-scrollbar-thumb:hover {
+        background: #6b7280;
+      }
+
       .glass {
         background: rgba(255, 255, 255, 0.1);
         backdrop-filter: blur(10px);
@@ -27,20 +98,44 @@
         backdrop-filter: blur(16px);
       }
 
-      /* Ensure proper text contrast in dark mode */
-      .dark h1,
-      .dark h2,
-      .dark h3,
-      .dark p {
-        color: #f9fafb;
+      /* Ensure full dark mode coverage for all elements */
+      .dark * {
+        border-color: rgba(75, 85, 99, 0.3);
       }
 
-      .dark .text-gray-500 {
+      .dark *:not(.tasks-button):not(.upload-button):not(.theme-toggle-button) {
+        background-color: inherit;
+        color: inherit;
+      }
+
+      /* Override any remaining light backgrounds in dark mode */
+      .dark .bg-white {
+        background-color: rgba(31, 41, 55, 0.8) !important;
+      }
+
+      .dark .bg-gray-50 {
+        background-color: rgba(17, 24, 39, 0.8) !important;
+      }
+
+      .dark .bg-slate-50 {
+        background-color: rgba(15, 23, 42, 0.8) !important;
+      }
+
+      /* Ensure proper text colors in dark mode */
+      .dark .text-gray-900 {
+        color: #f3f4f6 !important;
+      }
+
+      .dark .text-gray-800 {
+        color: #e5e7eb !important;
+      }
+
+      .dark .text-gray-700 {
+        color: #d1d5db !important;
+      }
+
+      .dark .text-gray-600 {
         color: #9ca3af !important;
-      }
-
-      .dark .text-gray-400 {
-        color: #6b7280 !important;
       }
 
       /* Enhanced dropdown styling for dark mode */
@@ -76,9 +171,22 @@
         box-shadow: 0 0 0 3px rgba(147, 51, 234, 0.1);
       }
 
-      /* Dark mode scrollbar styling */
-      .dark ::-webkit-scrollbar {
+      /* Dark mode scrollbar styling - Apply to all elements */
+      ::-webkit-scrollbar {
         width: 8px;
+      }
+
+      ::-webkit-scrollbar-track {
+        background: rgba(0, 0, 0, 0.1);
+      }
+
+      ::-webkit-scrollbar-thumb {
+        background: rgba(0, 0, 0, 0.3);
+        border-radius: 4px;
+      }
+
+      ::-webkit-scrollbar-thumb:hover {
+        background: rgba(0, 0, 0, 0.5);
       }
 
       .dark ::-webkit-scrollbar-track {
