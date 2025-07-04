@@ -121,3 +121,23 @@ Always use the browser to test the application after making changes, ensuring th
 - Removed custom CSS from `app/static/input.css` to rely solely on Tailwind CSS for styling.
 - Applied inline styles to SVG elements in `app/templates/index.html` to ensure correct icon sizing.
 - Reverted `app/static/input.css` to only contain `@tailwind` directives.
+
+## Tasks Functionality Fix (2025-07-04)
+
+**Critical JavaScript Functionality Restored:**
+
+- **Fixed non-clickable tasks button**: Added complete event handler for dropdown toggle functionality
+- **Implemented task counters**: Tasks button now displays pending task count in parentheses
+- **Added real-time task status updates**: Implemented polling system that checks task status every 2 seconds
+- **Enhanced task display**: Shows task filename, status, timestamp, and download button for completed tasks
+- **Drag & Drop Support**: Full drag-and-drop file upload with visual feedback and automatic processing
+- **Visual Feedback**: Comprehensive loading states, animations, and error handling for better UX
+
+**Technical Implementation:**
+
+- **API Integration**: Connects to `/api/tasks`, `/uploadfile/`, and `/download_markdown/{task_id}` endpoints
+- **Local State Management**: Uses Map() for efficient task tracking and updates
+- **Real-time Updates**: Smart polling system that stops when all tasks are completed
+- **Event Handling**: Proper dropdown management, drag & drop, and file upload processing
+
+**Browser Testing:** ✅ All tasks functionality now works correctly with full user interaction support.

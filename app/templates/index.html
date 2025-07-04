@@ -163,6 +163,99 @@
         margin-top: calc(1.5rem * calc(1 - var(--tw-space-y-reverse)));
         margin-bottom: calc(1.5rem * var(--tw-space-y-reverse));
       }
+
+      /* Animation classes */
+      .animate-bounce {
+        animation: bounce 1s infinite;
+      }
+      .animate-pulse {
+        animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+      }
+
+      @keyframes bounce {
+        0%,
+        100% {
+          transform: translateY(-25%);
+          animation-timing-function: cubic-bezier(0.8, 0, 1, 1);
+        }
+        50% {
+          transform: none;
+          animation-timing-function: cubic-bezier(0, 0, 0.2, 1);
+        }
+      }
+
+      @keyframes pulse {
+        50% {
+          opacity: 0.5;
+        }
+      }
+
+      /* Additional utility classes */
+      .truncate {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+      .min-w-0 {
+        min-width: 0px;
+      }
+      .flex-shrink-0 {
+        flex-shrink: 0;
+      }
+      .last\:border-b-0:last-child {
+        border-bottom-width: 0px;
+      }
+      .border-b {
+        border-bottom-width: 1px;
+      }
+      .bg-yellow-400 {
+        background-color: rgb(250 204 21);
+      }
+      .bg-green-400 {
+        background-color: rgb(74 222 128);
+      }
+      .bg-red-400 {
+        background-color: rgb(248 113 113);
+      }
+      .bg-gray-400 {
+        background-color: rgb(156 163 175);
+      }
+      .text-yellow-600 {
+        color: rgb(202 138 4);
+      }
+      .text-green-600 {
+        color: rgb(22 163 74);
+      }
+      .text-red-600 {
+        color: rgb(220 38 38);
+      }
+      .text-blue-500 {
+        color: rgb(59 130 246);
+      }
+      .text-blue-700 {
+        color: rgb(29 78 216);
+      }
+      .hover\:text-blue-700:hover {
+        color: rgb(29 78 216);
+      }
+      .rounded-full {
+        border-radius: 9999px;
+      }
+      .border-gray-100 {
+        border-color: rgb(243 244 246);
+      }
+      .dark .border-gray-700 {
+        border-color: rgb(55 65 81);
+      }
+      .border-blue-400 {
+        border-color: rgb(96 165 250);
+      }
+      .bg-blue-50 {
+        background-color: rgb(239 246 255);
+      }
+      .dark .bg-blue-900\/20 {
+        background-color: rgb(30 58 138 / 0.2);
+      }
     </style>
   </head>
   <body
@@ -361,8 +454,310 @@
       // Basic functionality
       const dropArea = document.getElementById("drop-area");
       const fileInput = document.getElementById("file-input");
+      const uploadForm = document.getElementById("upload-form");
+      const uploadButton = document.getElementById("upload-button");
+      const uploadText = document.getElementById("upload-text");
+
+      // Tasks functionality
+      const tasksDropdownButton = document.getElementById(
+        "tasks-dropdown-button"
+      );
+      const tasksDropdown = document.getElementById("tasks-dropdown");
+      const tasksList = document.getElementById("tasks-list");
+
+      let tasks = new Map();
+      let tasksInterval;
 
       dropArea.addEventListener("click", () => fileInput.click());
+
+      // Drag and drop functionality
+      dropArea.addEventListener("dragover", (e) => {
+        e.preventDefault();
+        dropArea.classList.add(
+          "border-blue-400",
+          "bg-blue-50",
+          "dark:bg-blue-900/20"
+        );
+      });
+
+      dropArea.addEventListener("dragleave", (e) => {
+        e.preventDefault();
+        dropArea.classList.remove(
+          "border-blue-400",
+          "bg-blue-50",
+          "dark:bg-blue-900/20"
+        );
+      });
+
+      dropArea.addEventListener("drop", (e) => {
+        e.preventDefault();
+        dropArea.classList.remove(
+          "border-blue-400",
+          "bg-blue-50",
+          "dark:bg-blue-900/20"
+        );
+
+        const files = e.dataTransfer.files;
+        if (files.length > 0) {
+          fileInput.files = files;
+          // Trigger upload automatically
+          uploadForm.dispatchEvent(new Event("submit"));
+        }
+      });
+
+      // Tasks dropdown toggle
+      tasksDropdownButton.addEventListener("click", (e) => {
+        e.stopPropagation();
+        tasksDropdown.classList.toggle("hidden");
+      });
+
+      // Close dropdown when clicking outside
+      document.addEventListener("click", (e) => {
+        if (
+          !tasksDropdownButton.contains(e.target) &&
+          !tasksDropdown.contains(e.target)
+        ) {
+          tasksDropdown.classList.add("hidden");
+        }
+      });
+
+      // File upload handling
+      uploadForm.addEventListener("submit", async (e) => {
+        e.preventDefault();
+
+        const file = fileInput.files[0];
+        if (!file) {
+          alert("Please select a file to upload.");
+          return;
+        }
+
+        const formData = new FormData();
+        formData.append("file", file);
+
+        // Update UI to show loading state
+        uploadButton.disabled = true;
+        uploadText.textContent = "Processing...";
+        uploadButton.classList.add("opacity-75");
+
+        try {
+          const response = await fetch("/uploadfile/", {
+            method: "POST",
+            body: formData,
+          });
+
+          const result = await response.json();
+
+          if (response.ok) {
+            // Add task to local tracking
+            tasks.set(result.task_id, {
+              id: result.task_id,
+              status: "PENDING",
+              filename: file.name,
+              timestamp: new Date(),
+            });
+
+            // Update tasks display
+            updateTasksDisplay();
+
+            // Add bounce animation to tasks button
+            tasksDropdownButton.classList.add("animate-bounce");
+            setTimeout(() => {
+              tasksDropdownButton.classList.remove("animate-bounce");
+            }, 1000);
+
+            // Start polling for updates
+            if (!tasksInterval) {
+              startTasksPolling();
+            }
+
+            // Reset form
+            fileInput.value = "";
+            uploadText.textContent = "File uploaded! Check tasks for progress.";
+
+            setTimeout(() => {
+              uploadText.textContent = "Start Processing";
+              uploadButton.classList.remove("opacity-75");
+              uploadButton.disabled = false;
+            }, 2000);
+          } else {
+            throw new Error(result.detail || "Upload failed");
+          }
+        } catch (error) {
+          console.error("Upload error:", error);
+          alert("Error uploading file: " + error.message);
+          uploadText.textContent = "Start Processing";
+          uploadButton.classList.remove("opacity-75");
+          uploadButton.disabled = false;
+        }
+      });
+
+      // Update tasks button with counters
+      function updateTasksButton() {
+        const pendingCount = Array.from(tasks.values()).filter((task) =>
+          ["PENDING", "STARTED", "RETRY"].includes(task.status)
+        ).length;
+
+        const completedCount = Array.from(tasks.values()).filter((task) =>
+          ["SUCCESS", "FAILURE"].includes(task.status)
+        ).length;
+
+        let buttonText = "Tasks";
+        if (pendingCount > 0) {
+          buttonText += ` (${pendingCount})`;
+        }
+
+        tasksDropdownButton.innerHTML = `
+          <svg class="w-4 h-4 mr-2 text-gray-600 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path>
+          </svg>
+          ${buttonText}
+        `;
+      }
+
+      // Update tasks display
+      function updateTasksDisplay() {
+        if (tasks.size === 0) {
+          tasksList.innerHTML =
+            '<li class="px-4 py-3 text-gray-500 dark:text-gray-400 text-sm text-center">No tasks running.</li>';
+          updateTasksButton();
+          return;
+        }
+
+        const sortedTasks = Array.from(tasks.values()).sort(
+          (a, b) => b.timestamp - a.timestamp
+        );
+
+        tasksList.innerHTML = sortedTasks
+          .map((task) => {
+            const statusIcon = getStatusIcon(task.status);
+            const statusColor = getStatusColor(task.status);
+            const timeAgo = getTimeAgo(task.timestamp);
+
+            return `
+            <li class="px-4 py-3 border-b border-gray-100 dark:border-gray-700 last:border-b-0">
+              <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-3 flex-1 min-w-0">
+                  <div class="flex-shrink-0">
+                    ${statusIcon}
+                  </div>
+                  <div class="flex-1 min-w-0">
+                    <p class="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">
+                      ${task.filename}
+                    </p>
+                    <p class="text-xs text-gray-500 dark:text-gray-400">
+                      ${timeAgo} • ${task.status}
+                    </p>
+                  </div>
+                </div>
+                ${
+                  task.status === "SUCCESS"
+                    ? `
+                  <button onclick="downloadResult('${task.id}')" class="ml-2 text-blue-500 hover:text-blue-700 text-sm">
+                    Download
+                  </button>
+                `
+                    : ""
+                }
+              </div>
+            </li>
+          `;
+          })
+          .join("");
+
+        updateTasksButton();
+      }
+
+      // Get status icon based on task status
+      function getStatusIcon(status) {
+        switch (status) {
+          case "PENDING":
+          case "STARTED":
+            return '<div class="w-2 h-2 bg-yellow-400 rounded-full animate-pulse"></div>';
+          case "SUCCESS":
+            return '<div class="w-2 h-2 bg-green-400 rounded-full"></div>';
+          case "FAILURE":
+            return '<div class="w-2 h-2 bg-red-400 rounded-full"></div>';
+          default:
+            return '<div class="w-2 h-2 bg-gray-400 rounded-full"></div>';
+        }
+      }
+
+      // Get status color class
+      function getStatusColor(status) {
+        switch (status) {
+          case "PENDING":
+          case "STARTED":
+            return "text-yellow-600";
+          case "SUCCESS":
+            return "text-green-600";
+          case "FAILURE":
+            return "text-red-600";
+          default:
+            return "text-gray-600";
+        }
+      }
+
+      // Get time ago string
+      function getTimeAgo(timestamp) {
+        const now = new Date();
+        const diff = now - timestamp;
+        const minutes = Math.floor(diff / 60000);
+
+        if (minutes < 1) return "Just now";
+        if (minutes < 60) return `${minutes}m ago`;
+
+        const hours = Math.floor(minutes / 60);
+        if (hours < 24) return `${hours}h ago`;
+
+        const days = Math.floor(hours / 24);
+        return `${days}d ago`;
+      }
+
+      // Download result function
+      window.downloadResult = function (taskId) {
+        window.open(`/download_markdown/${taskId}`, "_blank");
+      };
+
+      // Fetch tasks from server
+      async function fetchTasks() {
+        try {
+          const response = await fetch("/api/tasks");
+          if (response.ok) {
+            const serverTasks = await response.json();
+
+            // Update local tasks with server data
+            serverTasks.forEach((serverTask) => {
+              if (tasks.has(serverTask.task_id)) {
+                const localTask = tasks.get(serverTask.task_id);
+                localTask.status = serverTask.status;
+              }
+            });
+
+            updateTasksDisplay();
+
+            // Stop polling if all tasks are completed
+            const hasActiveTasks = Array.from(tasks.values()).some((task) =>
+              ["PENDING", "STARTED", "RETRY"].includes(task.status)
+            );
+
+            if (!hasActiveTasks && tasksInterval) {
+              clearInterval(tasksInterval);
+              tasksInterval = null;
+            }
+          }
+        } catch (error) {
+          console.error("Error fetching tasks:", error);
+        }
+      }
+
+      // Start polling for task updates
+      function startTasksPolling() {
+        if (tasksInterval) {
+          clearInterval(tasksInterval);
+        }
+
+        tasksInterval = setInterval(fetchTasks, 2000); // Poll every 2 seconds
+      }
 
       // Theme toggle
       const themeToggle = document.getElementById("theme-toggle");
@@ -391,6 +786,12 @@
         const isDark = htmlElement.classList.contains("dark");
         updateTheme(isDark ? "light" : "dark");
       });
+
+      // Initialize tasks display
+      updateTasksDisplay();
+
+      // Load tasks on page load
+      fetchTasks();
     </script>
   </body>
 </html>

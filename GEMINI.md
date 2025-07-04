@@ -164,3 +164,57 @@ Always add required apps to the dockerfile's installation block, and ensure Cele
 ```
 
 **Browser Testing:** ✅ Verified all icons now display at proper sizes and dropdown remains within viewport on all screen sizes.
+
+## Tasks Functionality Fix (2025-07-04)
+
+**Critical JavaScript Functionality Restored:**
+
+- **Fixed non-clickable tasks button**: Added complete event handler for dropdown toggle functionality
+- **Implemented task counters**: Tasks button now displays pending task count in parentheses (e.g., "Tasks (2)")
+- **Added real-time task status updates**: Implemented polling system that checks task status every 2 seconds
+- **Enhanced task display**: Shows task filename, status, timestamp, and download button for completed tasks
+
+**Complete Tasks Management System:**
+
+- **Task Status Tracking**: Visual indicators for PENDING (yellow pulse), SUCCESS (green), FAILURE (red)
+- **File Upload Integration**: Automatic task creation and tracking when files are uploaded
+- **Download Functionality**: Direct download buttons for successfully processed tasks
+- **Auto-refresh**: Tasks list updates automatically without page refresh
+- **Smart Polling**: Stops polling when all tasks are completed to save resources
+
+**User Experience Enhancements:**
+
+- **Drag & Drop Support**: Full drag-and-drop file upload with visual feedback
+- **Visual Feedback**: Border color changes and background highlights during drag operations
+- **Bounce Animation**: Tasks button bounces when new files are uploaded
+- **Loading States**: Upload button shows "Processing..." state during file upload
+- **Error Handling**: Comprehensive error messages for upload failures
+- **Responsive Design**: Dropdown positioning works on all screen sizes
+
+**Technical Implementation:**
+
+- **API Integration**: Connects to `/api/tasks`, `/uploadfile/`, and `/download_markdown/{task_id}` endpoints
+- **Local State Management**: Uses Map() for efficient task tracking and updates
+- **Event Handling**: Proper click outside detection for dropdown closing
+- **Time Display**: Intelligent time formatting (now, minutes, hours, days ago)
+- **Status Icons**: Dynamic status indicators with appropriate colors and animations
+
+**JavaScript Features Added:**
+
+```javascript
+// Task management functions
+updateTasksDisplay(), fetchTasks(), startTasksPolling();
+// File upload with progress tracking
+// Drag and drop event handlers
+// Real-time status updates with visual feedback
+```
+
+**CSS Animations Added:**
+
+```css
+.animate-bounce, .animate-pulse /* Task feedback animations */
+.border-blue-400, .bg-blue-50 /* Drag and drop visual feedback */
+Status indicator colors (yellow, green, red, gray);
+```
+
+**Browser Testing:** ✅ All tasks functionality now works correctly - button is clickable, shows counters, displays task status, and provides download links.
