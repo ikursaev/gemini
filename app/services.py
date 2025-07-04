@@ -46,14 +46,14 @@ async def extract_content_from_image(
         )
         output_tokens = (await client.aio.models.count_tokens(
             model=settings.MODEL_NAME,
-            contents=[response.text],
+            contents=[response.text or ""],
         ))
         logger.info(
             f"Image Extraction - Input Tokens: {input_tokens}, Output Tokens: {output_tokens}"
         )
         # Attempt to parse as JSON first, then fallback to plain text
         try:
-            data = response.text.strip()
+            data = (response.text or "").strip()
             if data.startswith("```json") and data.endswith("```"):
                 json_str = data[7:-3].strip()
                 parsed_data = json.loads(json_str)
@@ -62,13 +62,13 @@ async def extract_content_from_image(
                         text=parsed_data.get("text", ""),
                         tables=[Table(**t) for t in parsed_data.get("tables", [])],
                     ),
-                    input_tokens,
-                    output_tokens,
+                    input_tokens.total_tokens or 0,
+                    output_tokens.total_tokens or 0,
                 )
             else:
-                return ExtractedData(text=response.text), input_tokens, output_tokens
+                return ExtractedData(text=response.text or ""), input_tokens.total_tokens or 0, output_tokens.total_tokens or 0
         except json.JSONDecodeError:
-            return ExtractedData(text=response.text), input_tokens, output_tokens
+            return ExtractedData(text=response.text or ""), input_tokens.total_tokens or 0, output_tokens.total_tokens or 0
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error processing image: {e}")
 
@@ -97,7 +97,7 @@ async def extract_content_from_pdf(
 
         output_tokens = (await client.aio.models.count_tokens(
             model=settings.MODEL_NAME,
-            contents=[response.text],
+            contents=[response.text or ""],
         ))
 
         logger.info(
@@ -105,7 +105,7 @@ async def extract_content_from_pdf(
         )
 
         try:
-            data = response.text.strip()
+            data = (response.text or "").strip()
             if data.startswith("```json") and data.endswith("```"):
                 json_str = data[7:-3].strip()
                 parsed_data = json.loads(json_str)
@@ -116,11 +116,11 @@ async def extract_content_from_pdf(
                     )
                 ]
             else:
-                extracted_data_list = [ExtractedData(text=response.text)]
+                extracted_data_list = [ExtractedData(text=response.text or "")]
         except json.JSONDecodeError:
-            extracted_data_list = [ExtractedData(text=response.text)]
+            extracted_data_list = [ExtractedData(text=response.text or "")]
 
-        return extracted_data_list, input_tokens, output_tokens
+        return extracted_data_list, input_tokens.total_tokens or 0, output_tokens.total_tokens or 0
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error processing PDF: {e}")
 
