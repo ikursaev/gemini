@@ -5,8 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Document Extractor</title>
     <link href="/static/output.css" rel="stylesheet" />
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
       href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@300;400;500;600&display=swap"
       rel="stylesheet"
@@ -41,12 +41,19 @@
 
       /* Modern font application */
       * {
-        font-family: 'Space Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        font-family: "Space Grotesk", -apple-system, BlinkMacSystemFont,
+          "Segoe UI", sans-serif;
       }
 
       /* Headings use Space Grotesk with enhanced styling */
-      h1, h2, h3, h4, h5, h6 {
-        font-family: 'Space Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      h1,
+      h2,
+      h3,
+      h4,
+      h5,
+      h6 {
+        font-family: "Space Grotesk", -apple-system, BlinkMacSystemFont,
+          "Segoe UI", sans-serif;
         font-weight: 600;
         letter-spacing: -0.025em;
       }
@@ -58,46 +65,62 @@
       }
 
       /* Buttons get the modern font */
-      button, .button {
-        font-family: 'Space Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      button,
+      .button {
+        font-family: "Space Grotesk", -apple-system, BlinkMacSystemFont,
+          "Segoe UI", sans-serif;
         font-weight: 500;
         letter-spacing: -0.025em;
       }
 
       /* Enhanced typography for drag and drop area */
       .drop-area {
-        font-family: 'Space Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        font-family: "Space Grotesk", -apple-system, BlinkMacSystemFont,
+          "Segoe UI", sans-serif;
       }
 
       .drop-area p {
-        font-family: 'Space Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        font-family: "Space Grotesk", -apple-system, BlinkMacSystemFont,
+          "Segoe UI", sans-serif;
       }
 
       /* Task display gets modern font */
-      .tasks-dropdown, .task-item {
-        font-family: 'Space Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      .tasks-dropdown,
+      .task-item {
+        font-family: "Space Grotesk", -apple-system, BlinkMacSystemFont,
+          "Segoe UI", sans-serif;
       }
 
       /* Form elements get modern font */
-      input, select, textarea {
-        font-family: 'Space Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      input,
+      select,
+      textarea {
+        font-family: "Space Grotesk", -apple-system, BlinkMacSystemFont,
+          "Segoe UI", sans-serif;
       }
 
       /* Badge text gets modern font */
-      .badge, .status-badge {
-        font-family: 'Space Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      .badge,
+      .status-badge {
+        font-family: "Space Grotesk", -apple-system, BlinkMacSystemFont,
+          "Segoe UI", sans-serif;
         font-weight: 500;
       }
 
       /* Body text gets improved styling */
-      p, span, div {
-        font-family: 'Space Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      p,
+      span,
+      div {
+        font-family: "Space Grotesk", -apple-system, BlinkMacSystemFont,
+          "Segoe UI", sans-serif;
         letter-spacing: -0.01em;
       }
 
       /* Monospace elements use JetBrains Mono */
-      code, pre, .monospace {
-        font-family: 'JetBrains Mono', 'Consolas', 'Monaco', monospace;
+      code,
+      pre,
+      .monospace {
+        font-family: "JetBrains Mono", "Consolas", "Monaco", monospace;
       }
 
       /* Additional dark mode coverage */
@@ -1363,13 +1386,19 @@
 
       // Function to get system theme preference
       function getSystemTheme() {
-        return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+        return window.matchMedia &&
+          window.matchMedia("(prefers-color-scheme: dark)").matches
+          ? "dark"
+          : "light";
       }
 
       // Get current theme - priority: localStorage > system preference > default light
       function getCurrentTheme() {
         const storedTheme = localStorage.getItem("theme");
-        if (storedTheme && (storedTheme === 'dark' || storedTheme === 'light')) {
+        if (
+          storedTheme &&
+          (storedTheme === "dark" || storedTheme === "light")
+        ) {
           return storedTheme;
         }
         return getSystemTheme();
@@ -1422,12 +1451,12 @@
 
       // Listen for system theme changes
       if (window.matchMedia) {
-        const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-        mediaQuery.addEventListener('change', (e) => {
+        const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
+        mediaQuery.addEventListener("change", (e) => {
           // Only update if user hasn't manually set a preference
           const hasManualPreference = localStorage.getItem("theme");
           if (!hasManualPreference) {
-            const systemTheme = e.matches ? 'dark' : 'light';
+            const systemTheme = e.matches ? "dark" : "light";
             updateTheme(systemTheme);
           }
         });

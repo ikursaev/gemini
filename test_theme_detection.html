@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Theme Detection Test</title>
+    <style>
+      body {
+        font-family: "Space Grotesk", sans-serif;
+        padding: 20px;
+        line-height: 1.6;
+      }
+      .info {
+        background: #f3f4f6;
+        padding: 10px;
+        border-radius: 5px;
+        margin: 10px 0;
+      }
+      .dark .info {
+        background: #374151;
+        color: white;
+      }
+      .dark {
+        background: #1f2937;
+        color: white;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Theme Detection Test</h1>
+    <div class="info" id="system-theme">System Theme:</div>
+    <div class="info" id="stored-theme">Stored Theme:</div>
+    <div class="info" id="current-theme">Current Theme:</div>
+    <button onclick="testTheme()">Test System Theme Detection</button>
+
+    <script>
+      function getSystemTheme() {
+        return window.matchMedia &&
+          window.matchMedia("(prefers-color-scheme: dark)").matches
+          ? "dark"
+          : "light";
+      }
+
+      function getCurrentTheme() {
+        const storedTheme = localStorage.getItem("theme");
+        if (
+          storedTheme &&
+          (storedTheme === "dark" || storedTheme === "light")
+        ) {
+          return storedTheme;
+        }
+        return getSystemTheme();
+      }
+
+      function testTheme() {
+        const systemTheme = getSystemTheme();
+        const storedTheme = localStorage.getItem("theme");
+        const currentTheme = getCurrentTheme();
+
+        document.getElementById("system-theme").textContent =
+          "System Theme: " + systemTheme;
+        document.getElementById("stored-theme").textContent =
+          "Stored Theme: " + (storedTheme || "none");
+        document.getElementById("current-theme").textContent =
+          "Current Theme: " + currentTheme;
+
+        if (currentTheme === "dark") {
+          document.documentElement.classList.add("dark");
+        } else {
+          document.documentElement.classList.remove("dark");
+        }
+      }
+
+      // Run test on load
+      testTheme();
+
+      // Listen for system theme changes
+      if (window.matchMedia) {
+        const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
+        mediaQuery.addEventListener("change", (e) => {
+          console.log("System theme changed to:", e.matches ? "dark" : "light");
+          testTheme();
+        });
+      }
+    </script>
+  </body>
+</html>
