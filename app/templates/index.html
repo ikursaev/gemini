@@ -1,445 +1,396 @@
 <!DOCTYPE html>
 <html lang="en" class="">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Document Extractor</title>
-    <link href="/static/output.css" rel="stylesheet">
-
+    <link href="/static/output.css" rel="stylesheet" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
     <style>
-        /* Custom scrollbar for the task list */
-        #tasks-list::-webkit-scrollbar {
-            width: 8px;
-        }
-        #tasks-list::-webkit-scrollbar-track {
-            background: #f1f1f1;
-            border-radius: 10px;
-        }
-        .dark #tasks-list::-webkit-scrollbar-track {
-            background: #374151;
-        }
-        #tasks-list::-webkit-scrollbar-thumb {
-            background: #888;
-            border-radius: 10px;
-        }
-        .dark #tasks-list::-webkit-scrollbar-thumb {
-            background: #6b7280;
-        }
-        #tasks-list::-webkit-scrollbar-thumb:hover {
-            background: #555;
-        }
-        .dark #tasks-list::-webkit-scrollbar-thumb:hover {
-            background: #9ca3af;
-        }
+      .glass {
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+      }
+      .dark .glass {
+        background: rgba(17, 24, 39, 0.8);
+        border: 1px solid rgba(55, 65, 81, 0.3);
+      }
+      .icon-container {
+        overflow: hidden;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+      }
+      svg {
+        max-width: 100%;
+        max-height: 100%;
+        flex-shrink: 0;
+      }
+      .w-3 {
+        width: 0.75rem;
+      }
+      .h-3 {
+        height: 0.75rem;
+      }
+      .w-4 {
+        width: 1rem;
+      }
+      .h-4 {
+        height: 1rem;
+      }
+      .w-6 {
+        width: 1.5rem;
+      }
+      .h-6 {
+        height: 1.5rem;
+      }
+      .w-8 {
+        width: 2rem;
+      }
+      .h-8 {
+        height: 2rem;
+      }
+      .z-10 {
+        z-index: 10;
+      }
+      .z-50 {
+        z-index: 50;
+      }
 
-        @keyframes bounce-once {
-            0%, 100% { transform: translateY(0); }
-            20% { transform: translateY(-6px); }
-            40% { transform: translateY(0); }
-            60% { transform: translateY(-3px); }
-            80% { transform: translateY(0); }
+      /* Responsive dropdown positioning */
+      @media (max-width: 640px) {
+        #tasks-dropdown {
+          right: 0;
+          left: auto;
+          width: 95vw;
+          max-width: 20rem;
         }
+      }
 
-        .bounce-once {
-            animation: bounce-once 0.8s ease-in-out;
-        }
+      /* Ensure dropdown is properly positioned */
+      .dropdown-container {
+        position: relative;
+      }
+
+      #tasks-dropdown {
+        position: absolute;
+        top: 100%;
+        right: 0;
+        margin-top: 0.5rem;
+        width: 20rem;
+      }
+
+      /* Additional Tailwind classes */
+      .mr-2 {
+        margin-right: 0.5rem;
+      }
+      .mb-1 {
+        margin-bottom: 0.25rem;
+      }
+      .mb-3 {
+        margin-bottom: 0.75rem;
+      }
+      .mb-6 {
+        margin-bottom: 1.5rem;
+      }
+      .mt-1 {
+        margin-top: 0.25rem;
+      }
+      .mt-2 {
+        margin-top: 0.5rem;
+      }
+      .px-3 {
+        padding-left: 0.75rem;
+        padding-right: 0.75rem;
+      }
+      .px-4 {
+        padding-left: 1rem;
+        padding-right: 1rem;
+      }
+      .px-6 {
+        padding-left: 1.5rem;
+        padding-right: 1.5rem;
+      }
+      .py-2 {
+        padding-top: 0.5rem;
+        padding-bottom: 0.5rem;
+      }
+      .py-3 {
+        padding-top: 0.75rem;
+        padding-bottom: 0.75rem;
+      }
+      .py-6 {
+        padding-top: 1.5rem;
+        padding-bottom: 1.5rem;
+      }
+      .py-12 {
+        padding-top: 3rem;
+        padding-bottom: 3rem;
+      }
+      .p-2 {
+        padding: 0.5rem;
+      }
+      .p-6 {
+        padding: 1.5rem;
+      }
+      .space-x-2 > :not([hidden]) ~ :not([hidden]) {
+        --tw-space-x-reverse: 0;
+        margin-right: calc(0.5rem * var(--tw-space-x-reverse));
+        margin-left: calc(0.5rem * calc(1 - var(--tw-space-x-reverse)));
+      }
+      .space-x-3 > :not([hidden]) ~ :not([hidden]) {
+        --tw-space-x-reverse: 0;
+        margin-right: calc(0.75rem * var(--tw-space-x-reverse));
+        margin-left: calc(0.75rem * calc(1 - var(--tw-space-x-reverse)));
+      }
+      .space-x-4 > :not([hidden]) ~ :not([hidden]) {
+        --tw-space-x-reverse: 0;
+        margin-right: calc(1rem * var(--tw-space-x-reverse));
+        margin-left: calc(1rem * calc(1 - var(--tw-space-x-reverse)));
+      }
+      .space-y-3 > :not([hidden]) ~ :not([hidden]) {
+        --tw-space-y-reverse: 0;
+        margin-top: calc(0.75rem * calc(1 - var(--tw-space-y-reverse)));
+        margin-bottom: calc(0.75rem * var(--tw-space-y-reverse));
+      }
+      .space-y-6 > :not([hidden]) ~ :not([hidden]) {
+        --tw-space-y-reverse: 0;
+        margin-top: calc(1.5rem * calc(1 - var(--tw-space-y-reverse)));
+        margin-bottom: calc(1.5rem * var(--tw-space-y-reverse));
+      }
     </style>
-</head>
-<body class="bg-gray-50 dark:bg-gray-900 text-gray-800 dark:text-gray-200 antialiased flex flex-col min-h-screen font-sans transition-colors duration-300">
-
-    <!-- Header -->
-    <header class="bg-white dark:bg-gray-800 shadow-sm py-4 px-6 flex justify-between items-center transition-colors duration-300">
-        <h1 class="text-2xl font-semibold text-gray-900 dark:text-white">Document Extractor</h1>
-        <div class="flex items-center gap-4">
-            <!-- Dark Mode Toggle -->
-            <button id="theme-toggle" class="p-2 text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors duration-200">
-                <svg id="theme-toggle-dark-icon" class="hidden w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"></path>
-                </svg>
-                <svg id="theme-toggle-light-icon" class="hidden w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                    <path fill-rule="evenodd" d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z" clip-rule="evenodd"></path>
-                </svg>
-            </button>
-
-            <div class="relative">
-            <button id="tasks-dropdown-button" class="bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-200 font-medium py-2 px-4 rounded-lg inline-flex items-center transition duration-200 ease-in-out">
-                <svg style="width: 1.25rem; height: 1.25rem;" class="mr-2 text-gray-500 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path></svg>
-                Tasks
-                <span id="pending-tasks-count" class="ml-2 inline-flex items-center justify-center px-2 py-0.5 text-xs font-bold leading-none text-red-100 bg-red-600 rounded-full hidden">0</span>
-                <span id="completed-tasks-count" class="ml-1 inline-flex items-center justify-center px-2 py-0.5 text-xs font-bold leading-none text-green-100 bg-green-600 rounded-full hidden">0</span>
-            </button>
-            <div id="tasks-dropdown" class="hidden absolute right-0 mt-2 w-72 bg-white dark:bg-gray-800 rounded-lg shadow-xl z-20 border border-gray-200 dark:border-gray-600 transition-colors duration-300">
-                <ul id="tasks-list" class="py-2 max-h-60 overflow-y-auto">
-                    <!-- Tasks will be loaded here -->
-                    <li class="px-4 py-2 text-gray-500 dark:text-gray-400 text-sm">No tasks running.</li>
-                </ul>
-            </div>
+  </head>
+  <body
+    class="bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-gray-900 dark:via-gray-800 dark:to-slate-900 text-gray-800 dark:text-gray-200 antialiased min-h-screen font-light"
+  >
+    <header
+      class="relative z-10 backdrop-blur-sm bg-white/80 dark:bg-gray-900/80 border-b border-gray-200/50 dark:border-gray-700/50 py-6 px-6"
+    >
+      <div class="max-w-7xl mx-auto flex justify-between items-center">
+        <div class="flex items-center space-x-4">
+          <div
+            class="w-6 h-6 bg-gradient-to-br from-purple-500 to-pink-500 rounded-lg icon-container"
+          >
+            <svg
+              class="w-3 h-3 text-white"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+              ></path>
+            </svg>
+          </div>
+          <div>
+            <h1
+              class="text-2xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 dark:from-purple-400 dark:to-pink-400 bg-clip-text text-transparent"
+            >
+              Document Extractor
+            </h1>
+            <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">
+              AI-powered document analysis
+            </p>
+          </div>
         </div>
+        <div class="flex items-center space-x-4">
+          <button
+            id="theme-toggle"
+            class="p-2 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-all duration-200 hover:scale-105"
+          >
+            <svg
+              id="theme-toggle-dark-icon"
+              class="hidden w-4 h-4"
+              fill="currentColor"
+              viewBox="0 0 20 20"
+            >
+              <path
+                d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"
+              ></path>
+            </svg>
+            <svg
+              id="theme-toggle-light-icon"
+              class="hidden w-4 h-4"
+              fill="currentColor"
+              viewBox="0 0 20 20"
+            >
+              <path
+                fill-rule="evenodd"
+                d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z"
+                clip-rule="evenodd"
+              ></path>
+            </svg>
+          </button>
+          <div class="dropdown-container">
+            <button
+              id="tasks-dropdown-button"
+              class="glass px-3 py-2 text-gray-700 dark:text-gray-200 font-medium rounded-lg inline-flex items-center transition-all duration-200 hover:scale-105 hover:shadow-lg"
+            >
+              <svg
+                class="w-4 h-4 mr-2 text-gray-600 dark:text-gray-400"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"
+                ></path>
+              </svg>
+              Tasks
+            </button>
+            <div
+              id="tasks-dropdown"
+              class="hidden glass rounded-xl shadow-2xl z-50 border border-gray-200/50 dark:border-gray-700/50 backdrop-blur-xl max-h-96 overflow-hidden"
+              style="max-width: 90vw"
+            >
+              <ul id="tasks-list" class="py-3 max-h-64 overflow-y-auto">
+                <li
+                  class="px-4 py-3 text-gray-500 dark:text-gray-400 text-sm text-center"
+                >
+                  No tasks running.
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
     </header>
-
-    <!-- Main Content -->
-    <main class="flex-grow container mx-auto px-4 py-8 flex flex-col items-center justify-center">
-        <div class="bg-white dark:bg-gray-800 p-8 rounded-xl shadow-lg w-full max-w-md border border-gray-200 dark:border-gray-700 transition-colors duration-300">
-            <h2 class="text-2xl font-semibold text-gray-900 dark:text-white mb-6 text-center">Upload Document for Extraction</h2>
-            <form id="upload-form" class="space-y-6">
-                <div id="drop-area" class="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-8 text-center cursor-pointer hover:border-blue-500 dark:hover:border-blue-400 transition duration-200 ease-in-out">
-                <input type="file" name="file" id="file-input" class="hidden" accept="application/pdf,image/*">
-                <p class="text-gray-500 dark:text-gray-400">Drag and drop your document here, or click to browse</p>
-                <svg style="width: 3rem; height: 3rem;" class="mx-auto mt-4 text-gray-400 dark:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 0115.9 6L16 6a3 3 0 013 3v10a2 2 0 01-2 2H7a2 2 0 01-2-2V16m-2-6l4-4m0 0l4 4m-4-4v12"></path></svg>
+    <main
+      class="relative z-10 flex-1 flex items-center justify-center px-4 py-12"
+    >
+      <div class="w-full max-w-lg">
+        <div
+          class="glass p-6 rounded-2xl shadow-2xl border border-gray-200/50 dark:border-gray-700/50 backdrop-blur-xl"
+        >
+          <div class="text-center mb-6">
+            <div
+              class="w-6 h-6 bg-gradient-to-br from-purple-500 to-pink-500 rounded-lg icon-container mx-auto mb-3"
+            >
+              <svg
+                class="w-3 h-3 text-white"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M7 16a4 4 0 01-.88-7.903A5 5 0 0115.9 6L16 6a3 3 0 013 3v10a2 2 0 01-2 2H7a2 2 0 01-2-2V16m-2-6l4-4m0 0l4 4m-4-4v12"
+                ></path>
+              </svg>
             </div>
-            <button type="submit" id="upload-button" class="w-full flex justify-center items-center px-4 py-2 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 dark:focus:ring-offset-gray-800 transition duration-200 ease-in-out mt-4">
-                <svg id="upload-icon" style="width: 1.25rem; height: 1.25rem;" class="mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
-                <svg id="loading-spinner" style="width: 1.25rem; height: 1.25rem;" class="animate-spin -ml-1 mr-3 text-white hidden" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                </svg>
-                Upload
+            <h2 class="text-xl font-bold text-gray-900 dark:text-white mb-1">
+              Upload Document
+            </h2>
+            <p class="text-gray-600 dark:text-gray-400 font-light text-sm">
+              Extract text and tables with AI precision
+            </p>
+          </div>
+          <form id="upload-form" class="space-y-6">
+            <div
+              id="drop-area"
+              class="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-6 text-center cursor-pointer transition-all duration-300"
+            >
+              <input
+                type="file"
+                name="file"
+                id="file-input"
+                class="hidden"
+                accept="application/pdf,image/*"
+              />
+              <div class="space-y-3">
+                <div
+                  class="w-8 h-8 bg-gradient-to-br from-blue-100 to-purple-100 dark:from-blue-900/30 dark:to-purple-900/30 rounded-lg icon-container mx-auto"
+                >
+                  <svg
+                    class="w-4 h-4 text-blue-500 dark:text-blue-400"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M12 6v6m0 0v6m0-6h6m-6 0H6"
+                    ></path>
+                  </svg>
+                </div>
+                <div>
+                  <p
+                    class="text-base font-medium text-gray-700 dark:text-gray-300 mb-1"
+                  >
+                    Drop your files here
+                  </p>
+                  <p class="text-sm text-gray-500 dark:text-gray-400">
+                    or
+                    <span class="text-blue-500 dark:text-blue-400 font-medium"
+                      >click to browse</span
+                    >
+                  </p>
+                  <p class="text-xs text-gray-400 dark:text-gray-500 mt-1">
+                    Support for PDF, PNG, JPG files
+                  </p>
+                </div>
+              </div>
+            </div>
+            <button
+              type="submit"
+              id="upload-button"
+              class="w-full bg-gradient-to-r from-purple-500 to-pink-500 text-white font-semibold py-3 rounded-xl transition-all duration-300 flex items-center justify-center space-x-2"
+            >
+              <span id="upload-text">Start Processing</span>
             </button>
-            </form>
+          </form>
         </div>
-
-        <!-- Result Display Area -->
-        <div id="result-display" class="mt-12 bg-white dark:bg-gray-800 p-8 rounded-xl shadow-lg w-full max-w-3xl border border-gray-200 dark:border-gray-700 hidden transition-colors duration-300">
-            <div class="flex justify-between items-center mb-6">
-                <h2 class="text-2xl font-semibold text-gray-900 dark:text-white">Extracted Content</h2>
-                <a id="download-link" class="px-4 py-2 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-200 font-medium rounded-lg inline-flex items-center transition duration-200 ease-in-out">
-                    <svg style="width: 1.25rem; height: 1.25rem;" class="mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l3-3m-3 3l-3-3m2-8h7a2 2 0 012 2v7a2 2 0 01-2 2h-7a2 2 0 01-2-2V5a2 2 0 012-2z"></path></svg>
-                    Download Markdown
-                </a>
-            </div>
-            <div id="extracted-markdown" class="prose max-w-none text-gray-700 dark:text-gray-300 leading-relaxed dark:prose-invert">
-                <!-- Markdown content will be rendered here -->
-            </div>
-        </div>
+      </div>
     </main>
-
-    <!-- Footer -->
-    <footer class="py-4 text-center text-gray-500 dark:text-gray-400 text-sm transition-colors duration-300">
-        Powered by Gemini & Tailwind CSS
-    </footer>
-
     <script>
-        // Dark mode functionality
-        const themeToggle = document.getElementById('theme-toggle');
-        const darkIcon = document.getElementById('theme-toggle-dark-icon');
-        const lightIcon = document.getElementById('theme-toggle-light-icon');
-        const htmlElement = document.documentElement;
+      // Basic functionality
+      const dropArea = document.getElementById("drop-area");
+      const fileInput = document.getElementById("file-input");
 
-        // Check for saved theme preference or default to light mode
-        const currentTheme = localStorage.getItem('theme') || 'light';
+      dropArea.addEventListener("click", () => fileInput.click());
 
-        // Function to update theme
-        function updateTheme(theme) {
-            if (theme === 'dark') {
-                htmlElement.classList.add('dark');
-                darkIcon.classList.add('hidden');
-                lightIcon.classList.remove('hidden');
-            } else {
-                htmlElement.classList.remove('dark');
-                darkIcon.classList.remove('hidden');
-                lightIcon.classList.add('hidden');
-            }
-            localStorage.setItem('theme', theme);
+      // Theme toggle
+      const themeToggle = document.getElementById("theme-toggle");
+      const darkIcon = document.getElementById("theme-toggle-dark-icon");
+      const lightIcon = document.getElementById("theme-toggle-light-icon");
+      const htmlElement = document.documentElement;
+
+      const currentTheme = localStorage.getItem("theme") || "light";
+
+      function updateTheme(theme) {
+        if (theme === "dark") {
+          htmlElement.classList.add("dark");
+          darkIcon.classList.add("hidden");
+          lightIcon.classList.remove("hidden");
+        } else {
+          htmlElement.classList.remove("dark");
+          darkIcon.classList.remove("hidden");
+          lightIcon.classList.add("hidden");
         }
+        localStorage.setItem("theme", theme);
+      }
 
-        // Initialize theme
-        updateTheme(currentTheme);
+      updateTheme(currentTheme);
 
-        // Theme toggle event listener
-        themeToggle.addEventListener('click', () => {
-            const isDark = htmlElement.classList.contains('dark');
-            updateTheme(isDark ? 'light' : 'dark');
-        });
-
-        // Rest of the existing JavaScript
-        const tasksDropdownButton = document.getElementById('tasks-dropdown-button');
-        const tasksDropdown = document.getElementById('tasks-dropdown');
-        const tasksList = document.getElementById('tasks-list');
-        const uploadForm = document.getElementById('upload-form');
-        const fileInput = document.getElementById('file-input');
-        const resultDisplay = document.getElementById('result-display');
-        const extractedMarkdown = document.getElementById('extracted-markdown');
-        const downloadLink = document.getElementById('download-link');
-        const uploadButton = document.getElementById('upload-button');
-        const dropArea = document.getElementById('drop-area');
-        const pendingTasksCountSpan = document.getElementById('pending-tasks-count');
-        const completedTasksCountSpan = document.getElementById('completed-tasks-count');
-
-        let tasks = {}; // Store tasks by ID
-
-        // --- Dropdown Toggle ---
-        tasksDropdownButton.addEventListener('click', () => {
-            tasksDropdown.classList.toggle('hidden');
-        });
-
-        // Close dropdown if clicked outside
-        window.addEventListener('click', (event) => {
-            if (!tasksDropdownButton.contains(event.target) && !tasksDropdown.contains(event.target)) {
-                tasksDropdown.classList.add('hidden');
-            }
-        });
-
-        // --- File Upload Logic ---
-        dropArea.addEventListener('click', () => fileInput.click());
-
-        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
-            dropArea.addEventListener(eventName, preventDefaults, false);
-            document.body.addEventListener(eventName, preventDefaults, false);
-        });
-
-        ['dragenter', 'dragover'].forEach(eventName => {
-            dropArea.addEventListener(eventName, highlight, false);
-        });
-
-        ['dragleave', 'drop'].forEach(eventName => {
-            dropArea.addEventListener(eventName, unhighlight, false);
-        });
-
-        dropArea.addEventListener('drop', handleDrop, false);
-
-        function preventDefaults(e) {
-            e.preventDefault();
-            e.stopPropagation();
-        }
-
-        function highlight() {
-            dropArea.classList.add('border-blue-500', 'bg-blue-50', 'dark:bg-blue-900/20');
-        }
-
-        function unhighlight() {
-            dropArea.classList.remove('border-blue-500', 'bg-blue-50', 'dark:bg-blue-900/20');
-        }
-
-        function handleDrop(e) {
-            const dt = e.dataTransfer;
-            const files = dt.files;
-            handleFiles(files);
-        }
-
-        fileInput.addEventListener('change', (event) => {
-            handleFiles(event.target.files);
-        });
-
-        async function handleFiles(files) {
-            if (files.length === 0) return;
-
-            const file = files[0];
-            const formData = new FormData();
-            formData.append('file', file);
-
-            uploadButton.disabled = true;
-            uploadButton.querySelector('#upload-icon').classList.add('hidden');
-            uploadButton.querySelector('#loading-spinner').classList.remove('hidden');
-
-            try {
-                const response = await fetch('/uploadfile/', {
-                    method: 'POST',
-                    body: formData,
-                });
-
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-
-                const data = await response.json();
-                console.log('Upload successful:', data);
-                if (data.task_id) {
-                    addTaskToList(data.task_id, file.name, data.status);
-                    triggerBounceAnimation();
-                }
-            } catch (error) {
-                console.error('Upload failed:', error);
-                alert('File upload failed: ' + error.message);
-            } finally {
-                uploadButton.disabled = false;
-                uploadButton.querySelector('#upload-icon').classList.remove('hidden');
-                uploadButton.querySelector('#loading-spinner').classList.add('hidden');
-                fileInput.value = ''; // Clear the input
-            }
-        }
-
-        // --- Task Management and UI Updates ---
-        function addTaskToList(taskId, fileName, status) {
-            tasks[taskId] = { id: taskId, name: fileName, status: status };
-            updateTasksListUI();
-            updateTaskCounters();
-        }
-
-        function updateTasksListUI() {
-            tasksList.innerHTML = ''; // Clear existing list
-            const taskIds = Object.keys(tasks).sort((a, b) => {
-                // Sort by status: PENDING first, then SUCCESS, then other statuses
-                const statusOrder = { 'PENDING': 1, 'STARTED': 2, 'SUCCESS': 3, 'FAILURE': 4, 'REVOKED': 5 };
-                return (statusOrder[tasks[a].status] || 99) - (statusOrder[tasks[b].status] || 99);
-            });
-
-            if (taskIds.length === 0) {
-                tasksList.innerHTML = '<li class="px-4 py-2 text-gray-500 dark:text-gray-400 text-sm">No tasks running.</li>';
-                return;
-            }
-
-            taskIds.forEach(taskId => {
-                const task = tasks[taskId];
-                let statusClass = '';
-                let statusText = task.status;
-                let actionButton = '';
-
-                switch (task.status) {
-                    case 'PENDING':
-                    case 'STARTED':
-                        statusClass = 'text-yellow-600 dark:text-yellow-400';
-                        actionButton = `<button data-task-id="${task.id}" class="stop-task-button ml-2 text-red-500 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 text-xs">Stop</button>`;
-                        break;
-                    case 'SUCCESS':
-                        statusClass = 'text-green-600 dark:text-green-400';
-                        actionButton = `<button data-task-id="${task.id}" class="view-result-button ml-2 text-blue-500 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 text-xs">View</button>`;
-                        break;
-                    case 'FAILURE':
-                        statusClass = 'text-red-600 dark:text-red-400';
-                        break;
-                    case 'REVOKED':
-                        statusClass = 'text-gray-500 dark:text-gray-400';
-                        statusText = 'STOPPED';
-                        break;
-                    default:
-                        statusClass = 'text-gray-500 dark:text-gray-400';
-                }
-
-                const listItem = document.createElement('li');
-                listItem.className = 'px-4 py-2 border-b border-gray-100 dark:border-gray-700 last:border-b-0 flex justify-between items-center';
-                listItem.innerHTML = `
-                    <div>
-                        <p class="text-sm font-medium text-gray-800 dark:text-gray-200">${task.name}</p>
-                        <p class="text-xs ${statusClass}">${statusText}</p>
-                    </div>
-                    <div>
-                        ${actionButton}
-                    </div>
-                `;
-                tasksList.appendChild(listItem);
-            });
-
-            // Add event listeners for new buttons
-            tasksList.querySelectorAll('.stop-task-button').forEach(button => {
-                button.addEventListener('click', async (e) => {
-                    const taskId = e.target.dataset.taskId;
-                    await stopTask(taskId);
-                });
-            });
-
-            tasksList.querySelectorAll('.view-result-button').forEach(button => {
-                button.addEventListener('click', async (e) => {
-                    const taskId = e.target.dataset.taskId;
-                    await viewTaskResult(taskId);
-                });
-            });
-        }
-
-        function updateTaskCounters() {
-            const pending = Object.values(tasks).filter(task => task.status === 'PENDING' || task.status === 'STARTED').length;
-            const completed = Object.values(tasks).filter(task => task.status === 'SUCCESS').length;
-
-            if (pending > 0) {
-                pendingTasksCountSpan.textContent = pending;
-                pendingTasksCountSpan.classList.remove('hidden');
-            } else {
-                pendingTasksCountSpan.classList.add('hidden');
-            }
-
-            if (completed > 0) {
-                completedTasksCountSpan.textContent = completed;
-                completedTasksCountSpan.classList.remove('hidden');
-            } else {
-                completedTasksCountSpan.classList.add('hidden');
-            }
-        }
-
-        async function fetchAllTasks() {
-            try {
-                const response = await fetch('/api/tasks');
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-                const fetchedTasks = await response.json();
-                fetchedTasks.forEach(fetchedTask => {
-                    // Only update if status has changed or task is new
-                    if (!tasks[fetchedTask.id] || tasks[fetchedTask.id].status !== fetchedTask.status) {
-                        // If task is new, we need its name. This is a limitation of current API.
-                        // For now, we'll just add it with its ID if name is unknown.
-                        // In a real app, you'd fetch task details or include name in initial task creation response.
-                        if (!tasks[fetchedTask.id]) {
-                            tasks[fetchedTask.id] = { id: fetchedTask.id, name: `Task ${fetchedTask.id.substring(0, 4)}...`, status: fetchedTask.status };
-                        } else {
-                            tasks[fetchedTask.id].status = fetchedTask.status;
-                        }
-                    }
-                });
-                updateTasksListUI();
-                updateTaskCounters();
-            } catch (error) {
-                console.error('Failed to fetch tasks:', error);
-            }
-        }
-
-        async function stopTask(taskId) {
-            try {
-                const response = await fetch(`/tasks/${taskId}/stop`, { method: 'POST' });
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-                const data = await response.json();
-                console.log(data.message);
-                // Optimistically update status, will be confirmed by next poll
-                if (tasks[taskId]) {
-                    tasks[taskId].status = 'REVOKED';
-                    updateTasksListUI();
-                    updateTaskCounters();
-                }
-            } catch (error) {
-                console.error('Failed to stop task:', error);
-                alert('Failed to stop task: ' + error.message);
-            }
-        }
-
-        async function viewTaskResult(taskId) {
-            try {
-                const response = await fetch(`/api/tasks/${taskId}/result`);
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-                const data = await response.json();
-                if (data.markdown) {
-                    extractedMarkdown.innerHTML = marked.parse(data.markdown);
-                    downloadLink.href = `/download_markdown/${taskId}`;
-                    resultDisplay.classList.remove('hidden');
-                    // Scroll to result display
-                    resultDisplay.scrollIntoView({ behavior: 'smooth' });
-                }
-            } catch (error) {
-                console.error('Failed to fetch task result:', error);
-                alert('Failed to fetch task result: ' + error.message);
-            }
-        }
-
-        function triggerBounceAnimation() {
-            tasksDropdownButton.classList.remove('bounce-once'); // Reset animation
-            void tasksDropdownButton.offsetWidth; // Trigger reflow
-            tasksDropdownButton.classList.add('bounce-once'); // Add animation
-        }
-
-        // Initial fetch and polling
-        fetchAllTasks();
-        setInterval(fetchAllTasks, 5000); // Poll every 5 seconds
-
-        // Initialize marked for markdown rendering
-        // Load marked library dynamically or ensure it's included in your HTML
-        if (typeof marked === 'undefined') {
-            const script = document.createElement('script');
-            script.src = 'https://cdn.jsdelivr.net/npm/marked/marked.min.js';
-            script.onload = () => {
-                console.log('Marked library loaded.');
-                // If there's any initial markdown to render, do it here
-            };
-            document.head.appendChild(script);
-        }
+      themeToggle.addEventListener("click", () => {
+        const isDark = htmlElement.classList.contains("dark");
+        updateTheme(isDark ? "light" : "dark");
+      });
     </script>
+  </body>
+</html>

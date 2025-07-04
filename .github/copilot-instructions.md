@@ -66,9 +66,10 @@ Adhere to DRY and KISS principles
 Use modern practices
 The code should be concise but readable.
 Always use `start.sh` to launch the application and its services after any changes. This script will automatically kill any existing processes and restart them.
-Always update GEMINI.md with made changes. For the future developers.
+Always update GEMINI.md and `.github\copilot-instructions.md` with made changes. For the future developers.
 Always add new packages to pyproject.toml
 Always add required apps to the dockerfile's installation block, and ensure Celery worker is started in post-create.sh
+Always use the browser to test the application after making changes, ensuring that all functionalities work as expected.
 
 ## Recent Improvements (2025-01-03)
 
