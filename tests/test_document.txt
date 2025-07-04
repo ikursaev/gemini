@@ -1,0 +1,22 @@
+This is a test document for the Document Extractor application.
+
+# Test Content
+
+This document contains:
+- Plain text content
+- Simple formatting
+- Multiple lines
+
+The purpose is to test the task management system improvements:
+1. Task persistence across page reloads
+2. Colorful badge counters for different task states
+3. Modern button styling with hover effects
+4. Better error handling and state management
+
+## Test Data
+
+Date: July 4, 2025
+Application: Document Extractor
+Test Type: Task Management UI Enhancement
+
+Let's see how well the AI processes this content and displays the task status!

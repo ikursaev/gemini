@@ -31,6 +31,51 @@
         max-height: 100%;
         flex-shrink: 0;
       }
+
+      /* Enhanced button styles */
+      .tasks-button {
+        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      }
+      .tasks-button:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      }
+      .tasks-button:active {
+        transform: translateY(0);
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      }
+
+      /* Badge animations */
+      .badge-enter {
+        animation: badge-slide-in 0.3s ease-out;
+      }
+
+      @keyframes badge-slide-in {
+        from {
+          opacity: 0;
+          transform: translateX(10px) scale(0.8);
+        }
+        to {
+          opacity: 1;
+          transform: translateX(0) scale(1);
+        }
+      }
+
+      .badge-pulse {
+        animation: badge-pulse 2s infinite;
+      }
+
+      @keyframes badge-pulse {
+        0%,
+        100% {
+          opacity: 1;
+          transform: scale(1);
+        }
+        50% {
+          opacity: 0.8;
+          transform: scale(1.05);
+        }
+      }
       .w-3 {
         width: 0.75rem;
       }
@@ -326,7 +371,7 @@
           <div class="dropdown-container">
             <button
               id="tasks-dropdown-button"
-              class="glass px-3 py-2 text-gray-700 dark:text-gray-200 font-medium rounded-lg inline-flex items-center transition-all duration-200 hover:scale-105 hover:shadow-lg"
+              class="tasks-button relative inline-flex items-center px-4 py-2.5 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 font-medium rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-md hover:bg-gray-50 dark:hover:bg-gray-750 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900"
             >
               <svg
                 class="w-4 h-4 mr-2 text-gray-600 dark:text-gray-400"
@@ -595,26 +640,40 @@
         }
       });
 
-      // Update tasks button with counters
+      // Update tasks button with colorful badges and counters
       function updateTasksButton() {
         const pendingCount = Array.from(tasks.values()).filter((task) =>
           ["PENDING", "STARTED", "RETRY"].includes(task.status)
         ).length;
 
-        const completedCount = Array.from(tasks.values()).filter((task) =>
-          ["SUCCESS", "FAILURE"].includes(task.status)
+        const successCount = Array.from(tasks.values()).filter(
+          (task) => task.status === "SUCCESS"
         ).length;
 
-        let buttonText = "Tasks";
+        const errorCount = Array.from(tasks.values()).filter(
+          (task) => task.status === "FAILURE"
+        ).length;
+
+        const totalCount = pendingCount + successCount + errorCount;
+
+        // Create badges HTML with animations
+        let badgesHtml = "";
         if (pendingCount > 0) {
-          buttonText += ` (${pendingCount})`;
+          badgesHtml += `<span class="badge-enter badge-pulse inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800 dark:bg-amber-900/20 dark:text-amber-300 ml-2">${pendingCount}</span>`;
+        }
+        if (successCount > 0) {
+          badgesHtml += `<span class="badge-enter inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-300 ml-2">${successCount}</span>`;
+        }
+        if (errorCount > 0) {
+          badgesHtml += `<span class="badge-enter inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-300 ml-2">${errorCount}</span>`;
         }
 
         tasksDropdownButton.innerHTML = `
           <svg class="w-4 h-4 mr-2 text-gray-600 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path>
           </svg>
-          ${buttonText}
+          <span>Tasks</span>
+          ${badgesHtml}
         `;
       }
 
@@ -722,64 +781,73 @@
         window.open(`/download_markdown/${taskId}`, "_blank");
       };
 
-      // Fetch tasks from server
+      // Fetch tasks from server with improved error handling
       async function fetchTasks() {
         try {
           const response = await fetch("/api/tasks");
-          if (response.ok) {
-            const serverTasks = await response.json();
+          if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+          }
 
-            // Handle server tasks - both update existing and add new ones
-            serverTasks.forEach((serverTask) => {
-              const taskId = serverTask.task_id;
+          const serverTasks = await response.json();
+          console.log("Fetched tasks from server:", serverTasks.length);
 
-              if (tasks.has(taskId)) {
-                // Update existing task status
-                const localTask = tasks.get(taskId);
-                localTask.status = serverTask.status;
-              } else {
-                // Add new task from server (for persistence after reload)
-                tasks.set(taskId, {
-                  id: taskId,
-                  status: serverTask.status,
-                  filename: serverTask.filename || "Unknown",
-                  timestamp: serverTask.timestamp
-                    ? new Date(serverTask.timestamp * 1000)
-                    : new Date(),
-                });
-              }
+          // Merge server tasks with local tasks
+          const updatedTasks = new Map();
+
+          // First, add all server tasks
+          serverTasks.forEach((serverTask) => {
+            const taskId = serverTask.task_id;
+            updatedTasks.set(taskId, {
+              id: taskId,
+              status: serverTask.status,
+              filename: serverTask.filename || "Unknown",
+              timestamp: serverTask.timestamp
+                ? new Date(serverTask.timestamp * 1000)
+                : new Date(),
             });
+          });
 
-            // Remove tasks that are no longer on the server
-            const serverTaskIds = new Set(serverTasks.map((t) => t.task_id));
-            for (const [taskId] of tasks) {
-              if (!serverTaskIds.has(taskId)) {
-                tasks.delete(taskId);
+          // Then, add any local tasks that aren't on the server (recently uploaded)
+          tasks.forEach((localTask, taskId) => {
+            if (!updatedTasks.has(taskId)) {
+              // Keep local task if it's not on server yet (might be very new)
+              const taskAge = Date.now() - localTask.timestamp.getTime();
+              if (taskAge < 60000) {
+                // Keep tasks younger than 1 minute
+                updatedTasks.set(taskId, localTask);
               }
             }
+          });
 
-            // Save tasks to localStorage for persistence
-            saveTasksToLocalStorage();
+          // Replace tasks map with updated version
+          tasks.clear();
+          updatedTasks.forEach((task, taskId) => {
+            tasks.set(taskId, task);
+          });
 
-            updateTasksDisplay();
+          // Save updated tasks to localStorage
+          saveTasksToLocalStorage();
 
-            // Stop polling if all tasks are completed
-            const hasActiveTasks = Array.from(tasks.values()).some((task) =>
-              ["PENDING", "STARTED", "RETRY"].includes(task.status)
-            );
+          // Update display
+          updateTasksDisplay();
 
-            if (!hasActiveTasks && tasksInterval) {
-              clearInterval(tasksInterval);
-              tasksInterval = null;
-            }
+          // Auto-manage polling based on task states
+          const hasActiveTasks = Array.from(tasks.values()).some((task) =>
+            ["PENDING", "STARTED", "RETRY"].includes(task.status)
+          );
 
-            // Start polling if we have active tasks but no interval running
-            if (hasActiveTasks && !tasksInterval) {
-              startTasksPolling();
-            }
+          if (!hasActiveTasks && tasksInterval) {
+            console.log("No active tasks, stopping polling");
+            clearInterval(tasksInterval);
+            tasksInterval = null;
+          } else if (hasActiveTasks && !tasksInterval) {
+            console.log("Active tasks found, starting polling");
+            startTasksPolling();
           }
         } catch (error) {
           console.error("Error fetching tasks:", error);
+          // Don't clear local tasks on fetch error, just log it
         }
       }
 
@@ -792,7 +860,7 @@
         tasksInterval = setInterval(fetchTasks, 2000); // Poll every 2 seconds
       }
 
-      // localStorage functions for task persistence
+      // Enhanced localStorage functions for task persistence
       function saveTasksToLocalStorage() {
         try {
           const tasksArray = Array.from(tasks.entries()).map(([id, task]) => ({
@@ -803,10 +871,18 @@
                 ? task.timestamp.getTime()
                 : task.timestamp,
           }));
+
+          const dataToSave = {
+            tasks: tasksArray,
+            lastSaved: Date.now(),
+            version: "1.0",
+          };
+
           localStorage.setItem(
             "documentExtractorTasks",
-            JSON.stringify(tasksArray)
+            JSON.stringify(dataToSave)
           );
+          console.log(`Saved ${tasksArray.length} tasks to localStorage`);
         } catch (error) {
           console.error("Error saving tasks to localStorage:", error);
         }
@@ -816,15 +892,30 @@
         try {
           const saved = localStorage.getItem("documentExtractorTasks");
           if (saved) {
-            const tasksArray = JSON.parse(saved);
+            const data = JSON.parse(saved);
+
+            // Handle both old and new format
+            const tasksArray = data.tasks || data; // data.tasks for new format, data for old format
+
+            // Only load tasks that are less than 24 hours old
+            const maxAge = 24 * 60 * 60 * 1000; // 24 hours
+            const now = Date.now();
+
+            let loadedCount = 0;
             tasksArray.forEach((taskData) => {
-              tasks.set(taskData.id, {
-                id: taskData.id,
-                status: taskData.status,
-                filename: taskData.filename,
-                timestamp: new Date(taskData.timestamp),
-              });
+              const taskAge = now - taskData.timestamp;
+              if (taskAge < maxAge) {
+                tasks.set(taskData.id, {
+                  id: taskData.id,
+                  status: taskData.status,
+                  filename: taskData.filename,
+                  timestamp: new Date(taskData.timestamp),
+                });
+                loadedCount++;
+              }
             });
+
+            console.log(`Loaded ${loadedCount} tasks from localStorage`);
           }
         } catch (error) {
           console.error("Error loading tasks from localStorage:", error);
@@ -877,25 +968,37 @@
       // Initialize tasks display
       updateTasksDisplay();
 
-      // Initialize app on page load
+      // Enhanced app initialization with better debugging
       async function initializeApp() {
+        console.log("Initializing Document Extractor app...");
+
         // Load tasks from localStorage first
         loadTasksFromLocalStorage();
+        console.log(`Initial tasks from localStorage: ${tasks.size}`);
+
+        // Update display with local tasks
+        updateTasksDisplay();
 
         // Then fetch latest from server (this will merge and update)
+        console.log("Fetching tasks from server...");
         await fetchTasks();
 
         // Clean up old tasks
         cleanupOldTasks();
 
         // Start polling if we have active tasks
-        const hasActiveTasks = Array.from(tasks.values()).some((task) =>
+        const activeTasks = Array.from(tasks.values()).filter((task) =>
           ["PENDING", "STARTED", "RETRY"].includes(task.status)
         );
 
-        if (hasActiveTasks) {
+        console.log(`Active tasks found: ${activeTasks.length}`);
+
+        if (activeTasks.length > 0) {
+          console.log("Starting polling for active tasks");
           startTasksPolling();
         }
+
+        console.log("App initialization complete");
       }
 
       // Initialize the app

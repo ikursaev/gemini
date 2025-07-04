@@ -260,32 +260,5 @@ cleanupOldTasks(); // Remove old completed tasks
 
 // Enhanced server sync
 fetchTasks(); // Now adds new tasks from server + updates existing
-initializeApp(); // Comprehensive startup sequence
+initializeApp(); // Comprehensive
 ```
-
-```python
-# Backend metadata storage
-task_metadata = {
-    "task_id": task.id,
-    "filename": file.filename,
-    "timestamp": int(time.time()),
-    "status": task.status
-}
-await redis_client.hset(f"task_metadata:{task.id}", mapping=task_metadata)
-```
-
-**User Experience Benefits:**
-
-- **📌 Persistent Task History**: Tasks remain visible after browser reload/restart
-- **🔄 Real-time Sync**: Server changes immediately reflected in UI
-- **🧹 Auto Cleanup**: Old tasks automatically removed to keep interface clean
-- **⚡ Fast Loading**: localStorage provides instant task restoration before server sync
-- **🔄 Seamless Recovery**: Polling automatically resumes for active tasks after reload
-
-**Testing Scenarios:** ✅ All task persistence scenarios verified:
-
-- Tasks survive page reload
-- New tasks added on other tabs/windows are synchronized
-- Completed tasks remain accessible for download
-- Old tasks are automatically cleaned up
-- Polling resumes correctly for active tasks after reload
