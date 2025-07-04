@@ -75,6 +75,122 @@
         box-shadow: 0 8px 25px 0 rgba(30, 64, 175, 0.4);
       }
 
+      /* Enhanced theme toggle button - Round and modern */
+      .theme-toggle-button {
+        background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+        border: 1px solid rgba(226, 232, 240, 0.8);
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      }
+
+      .theme-toggle-button:hover {
+        background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+        border-color: rgba(148, 163, 184, 0.8);
+        transform: translateY(-1px);
+        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.12);
+      }
+
+      .dark .theme-toggle-button {
+        background: linear-gradient(135deg, #374151 0%, #1f2937 100%);
+        border-color: rgba(75, 85, 99, 0.8);
+      }
+
+      .dark .theme-toggle-button:hover {
+        background: linear-gradient(135deg, #4b5563 0%, #374151 100%);
+        border-color: rgba(107, 114, 128, 0.8);
+      }
+
+      /* Upload button - Pill-shaped to match design system */
+      .upload-button {
+        background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+        border: none;
+        color: white;
+        border-radius: 9999px;
+        padding: 0.75rem 1.5rem;
+        font-weight: 600;
+        font-size: 0.875rem;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        box-shadow: 0 4px 14px 0 rgba(139, 92, 246, 0.25);
+        width: 100%;
+      }
+
+      .upload-button:hover:not(:disabled) {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px 0 rgba(139, 92, 246, 0.35);
+        background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%);
+      }
+
+      .upload-button:active:not(:disabled) {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 14px 0 rgba(139, 92, 246, 0.25);
+      }
+
+      .upload-button:disabled {
+        opacity: 0.75;
+        cursor: not-allowed;
+        transform: none;
+      }
+
+      /* Enhanced drop area styling */
+      .drop-area {
+        background: linear-gradient(
+          135deg,
+          rgba(255, 255, 255, 0.8) 0%,
+          rgba(248, 250, 252, 0.8) 100%
+        );
+        backdrop-filter: blur(10px);
+        border: 2px dashed rgba(203, 213, 225, 0.8);
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      }
+
+      .drop-area:hover {
+        border-color: rgba(147, 51, 234, 0.6);
+        background: linear-gradient(
+          135deg,
+          rgba(245, 243, 255, 0.9) 0%,
+          rgba(237, 233, 254, 0.9) 100%
+        );
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(147, 51, 234, 0.15);
+      }
+
+      .drop-area.drag-over {
+        border-color: rgba(147, 51, 234, 0.8);
+        background: linear-gradient(
+          135deg,
+          rgba(245, 243, 255, 1) 0%,
+          rgba(237, 233, 254, 1) 100%
+        );
+        transform: scale(1.02);
+        box-shadow: 0 8px 20px rgba(147, 51, 234, 0.25);
+      }
+
+      .dark .drop-area {
+        background: linear-gradient(
+          135deg,
+          rgba(31, 41, 55, 0.8) 0%,
+          rgba(17, 24, 39, 0.8) 100%
+        );
+        border-color: rgba(75, 85, 99, 0.8);
+      }
+
+      .dark .drop-area:hover {
+        border-color: rgba(147, 51, 234, 0.6);
+        background: linear-gradient(
+          135deg,
+          rgba(49, 46, 129, 0.2) 0%,
+          rgba(67, 56, 202, 0.2) 100%
+        );
+      }
+
+      .dark .drop-area.drag-over {
+        border-color: rgba(147, 51, 234, 0.8);
+        background: linear-gradient(
+          135deg,
+          rgba(49, 46, 129, 0.3) 0%,
+          rgba(67, 56, 202, 0.3) 100%
+        );
+      }
+
       /* Enhanced badge animations with vibrant colors */
       .badge-enter {
         animation: badge-slide-in 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
@@ -416,30 +532,9 @@
         <div class="flex items-center space-x-4">
           <button
             id="theme-toggle"
-            class="p-2 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-all duration-200 hover:scale-105"
+            class="theme-toggle-button w-10 h-10 rounded-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 transition-all duration-300 flex items-center justify-center shadow-md hover:shadow-lg hover:-translate-y-0.5"
           >
-            <svg
-              id="theme-toggle-dark-icon"
-              class="hidden w-4 h-4"
-              fill="currentColor"
-              viewBox="0 0 20 20"
-            >
-              <path
-                d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"
-              ></path>
-            </svg>
-            <svg
-              id="theme-toggle-light-icon"
-              class="hidden w-4 h-4"
-              fill="currentColor"
-              viewBox="0 0 20 20"
-            >
-              <path
-                fill-rule="evenodd"
-                d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z"
-                clip-rule="evenodd"
-              ></path>
-            </svg>
+            <!-- Icon will be dynamically inserted by JavaScript -->
           </button>
           <div class="dropdown-container">
             <button
@@ -513,7 +608,7 @@
           <form id="upload-form" class="space-y-6">
             <div
               id="drop-area"
-              class="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-6 text-center cursor-pointer transition-all duration-300"
+              class="drop-area border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-2xl p-8 text-center cursor-pointer transition-all duration-300 hover:border-purple-400 hover:bg-purple-50 dark:hover:bg-purple-900/10"
             >
               <input
                 type="file"
@@ -561,7 +656,7 @@
             <button
               type="submit"
               id="upload-button"
-              class="w-full bg-gradient-to-r from-purple-500 to-pink-500 text-white font-semibold py-3 rounded-xl transition-all duration-300 flex items-center justify-center space-x-2"
+              class="upload-button flex items-center justify-center space-x-2"
             >
               <span id="upload-text">Start Processing</span>
             </button>
@@ -589,32 +684,23 @@
 
       dropArea.addEventListener("click", () => fileInput.click());
 
-      // Drag and drop functionality
+      // Enhanced drag and drop functionality
       dropArea.addEventListener("dragover", (e) => {
         e.preventDefault();
-        dropArea.classList.add(
-          "border-blue-400",
-          "bg-blue-50",
-          "dark:bg-blue-900/20"
-        );
+        dropArea.classList.add("drag-over");
       });
 
       dropArea.addEventListener("dragleave", (e) => {
         e.preventDefault();
-        dropArea.classList.remove(
-          "border-blue-400",
-          "bg-blue-50",
-          "dark:bg-blue-900/20"
-        );
+        // Only remove class if we're actually leaving the drop area
+        if (!dropArea.contains(e.relatedTarget)) {
+          dropArea.classList.remove("drag-over");
+        }
       });
 
       dropArea.addEventListener("drop", (e) => {
         e.preventDefault();
-        dropArea.classList.remove(
-          "border-blue-400",
-          "bg-blue-50",
-          "dark:bg-blue-900/20"
-        );
+        dropArea.classList.remove("drag-over");
 
         const files = e.dataTransfer.files;
         if (files.length > 0) {
@@ -1008,23 +1094,38 @@
         }
       }
 
-      // Theme toggle
+      // Enhanced theme toggle with better icon management
       const themeToggle = document.getElementById("theme-toggle");
-      const darkIcon = document.getElementById("theme-toggle-dark-icon");
-      const lightIcon = document.getElementById("theme-toggle-light-icon");
       const htmlElement = document.documentElement;
 
       const currentTheme = localStorage.getItem("theme") || "light";
 
+      // Create and manage theme icons dynamically
+      function createThemeIcon(theme) {
+        if (theme === "dark") {
+          return `
+            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z" clip-rule="evenodd"></path>
+            </svg>
+          `;
+        } else {
+          return `
+            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+              <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"></path>
+            </svg>
+          `;
+        }
+      }
+
       function updateTheme(theme) {
         if (theme === "dark") {
           htmlElement.classList.add("dark");
-          darkIcon.classList.add("hidden");
-          lightIcon.classList.remove("hidden");
+          // Show sun icon when in dark mode (to switch to light)
+          themeToggle.innerHTML = createThemeIcon("dark");
         } else {
           htmlElement.classList.remove("dark");
-          darkIcon.classList.remove("hidden");
-          lightIcon.classList.add("hidden");
+          // Show moon icon when in light mode (to switch to dark)
+          themeToggle.innerHTML = createThemeIcon("light");
         }
         localStorage.setItem("theme", theme);
       }
