@@ -31,7 +31,9 @@
       }
 
       /* Global box-sizing */
-      *, *::before, *::after {
+      *,
+      *::before,
+      *::after {
         box-sizing: border-box;
       }
 
@@ -58,11 +60,18 @@
       }
 
       /* Dark mode for any missed elements */
-      .dark h1, .dark h2, .dark h3, .dark h4, .dark h5, .dark h6 {
+      .dark h1,
+      .dark h2,
+      .dark h3,
+      .dark h4,
+      .dark h5,
+      .dark h6 {
         color: #f9fafb;
       }
 
-      .dark p, .dark span, .dark div {
+      .dark p,
+      .dark span,
+      .dark div {
         color: inherit;
       }
 
