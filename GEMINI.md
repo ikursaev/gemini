@@ -218,3 +218,74 @@ Status indicator colors (yellow, green, red, gray);
 ```
 
 **Browser Testing:** ✅ All tasks functionality now works correctly - button is clickable, shows counters, displays task status, and provides download links.
+
+## Task Persistence Fix (2025-07-04)
+
+**Critical Task Persistence Issues Resolved:**
+
+- **Fixed task disappearance on page reload**: Implemented comprehensive task persistence using localStorage + server synchronization
+- **Enhanced backend task metadata**: Added Redis-based storage for task filename, timestamp, and status information
+- **Improved API endpoint**: Updated `/api/tasks` to return complete task metadata instead of just ID and status
+- **Smart task synchronization**: Merges local storage with server state on page load for robust persistence
+
+**Backend Enhancements:**
+
+- **Task Metadata Storage**: Store complete task information in Redis with TTL expiration
+- **Enhanced `/api/tasks` Endpoint**: Returns task_id, status, filename, timestamp, file_size, and mime_type
+- **Automatic Cleanup**: Redis keys expire after 1 hour to prevent storage buildup
+- **Error Handling**: Graceful fallbacks for missing metadata
+
+**Frontend Persistence System:**
+
+- **localStorage Integration**: Automatic saving/loading of task state across browser sessions
+- **Server Synchronization**: Merges localStorage data with server state on initialization
+- **Intelligent Task Management**: Adds new server tasks, updates existing ones, removes stale tasks
+- **Automatic Cleanup**: Keeps only the latest 10 completed tasks to prevent storage bloat
+
+**Smart Initialization Flow:**
+
+1. **Load from localStorage**: Restore previously saved tasks from browser storage
+2. **Fetch from server**: Get latest task status and discover new tasks
+3. **Merge and sync**: Combine local and server data, remove stale entries
+4. **Auto-start polling**: Resume real-time updates if active tasks exist
+5. **Cleanup old tasks**: Remove excess completed tasks to maintain performance
+
+**Technical Implementation:**
+
+```javascript
+// Task persistence functions
+saveTasksToLocalStorage(); // Auto-save task state
+loadTasksFromLocalStorage(); // Restore on page load
+cleanupOldTasks(); // Remove old completed tasks
+
+// Enhanced server sync
+fetchTasks(); // Now adds new tasks from server + updates existing
+initializeApp(); // Comprehensive startup sequence
+```
+
+```python
+# Backend metadata storage
+task_metadata = {
+    "task_id": task.id,
+    "filename": file.filename,
+    "timestamp": int(time.time()),
+    "status": task.status
+}
+await redis_client.hset(f"task_metadata:{task.id}", mapping=task_metadata)
+```
+
+**User Experience Benefits:**
+
+- **📌 Persistent Task History**: Tasks remain visible after browser reload/restart
+- **🔄 Real-time Sync**: Server changes immediately reflected in UI
+- **🧹 Auto Cleanup**: Old tasks automatically removed to keep interface clean
+- **⚡ Fast Loading**: localStorage provides instant task restoration before server sync
+- **🔄 Seamless Recovery**: Polling automatically resumes for active tasks after reload
+
+**Testing Scenarios:** ✅ All task persistence scenarios verified:
+
+- Tasks survive page reload
+- New tasks added on other tabs/windows are synchronized
+- Completed tasks remain accessible for download
+- Old tasks are automatically cleaned up
+- Polling resumes correctly for active tasks after reload

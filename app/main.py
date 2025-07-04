@@ -28,7 +28,7 @@ logging.basicConfig(
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
     handlers=[
         logging.FileHandler(settings.LOG_FILE_PATH),
-        logging.StreamHandler(sys.stdout)
+        logging.StreamHandler(sys.stdout),
     ],
 )
 logger = logging.getLogger(__name__)
@@ -38,9 +38,7 @@ sys.path.append(str(Path(__file__).resolve().parent.parent))
 
 # Redis client using settings
 redis_client = redis.asyncio.Redis.from_url(
-    settings.redis_url,
-    encoding="utf-8",
-    decode_responses=True
+    settings.redis_url, encoding="utf-8", decode_responses=True
 )
 
 TASK_LIST_KEY = "celery_tasks"  # Redis key to store task IDs
@@ -70,7 +68,7 @@ app = FastAPI(
     title="Gemini Document Extractor",
     description="Extract text and tables from PDFs and images using Google's Gemini AI",
     version="0.1.0",
-    lifespan=lifespan
+    lifespan=lifespan,
 )
 
 # Templates and static files
@@ -93,10 +91,7 @@ async def health_check():
 @app.get("/health/detailed")
 async def detailed_health_check():
     """Detailed health check with component status."""
-    health_status = {
-        "status": "healthy",
-        "components": {}
-    }
+    health_status = {"status": "healthy", "components": {}}
 
     # Check Redis
     try:
@@ -112,10 +107,16 @@ async def detailed_health_check():
         if upload_path.exists() and upload_path.is_dir():
             health_status["components"]["upload_folder"] = {"status": "healthy"}
         else:
-            health_status["components"]["upload_folder"] = {"status": "unhealthy", "error": "Upload folder not accessible"}
+            health_status["components"]["upload_folder"] = {
+                "status": "unhealthy",
+                "error": "Upload folder not accessible",
+            }
             health_status["status"] = "unhealthy"
     except Exception as e:
-        health_status["components"]["upload_folder"] = {"status": "unhealthy", "error": str(e)}
+        health_status["components"]["upload_folder"] = {
+            "status": "unhealthy",
+            "error": str(e),
+        }
         health_status["status"] = "unhealthy"
 
     if health_status["status"] == "unhealthy":
@@ -141,7 +142,9 @@ async def create_upload_file(file: UploadFile = File(...)):
         # Use utility functions for validation
         is_valid_size, size_error = validate_file_size(file_size)
         if not is_valid_size:
-            raise HTTPException(status_code=413 if "exceeds" in size_error else 400, detail=size_error)
+            raise HTTPException(
+                status_code=413 if "exceeds" in size_error else 400, detail=size_error
+            )
 
         # Validate filename
         if not file.filename or file.filename.strip() == "":
@@ -170,19 +173,37 @@ async def create_upload_file(file: UploadFile = File(...)):
         # Submit task for processing
         task = process_file.delay(str(file_path), mime_type)
 
-        # Store task ID in Redis with TTL
-        await redis_client.lpush(TASK_LIST_KEY, task.id)
-        await redis_client.expire(TASK_LIST_KEY, TASK_TTL)
+        # Store task metadata in Redis with TTL
+        import time
 
-        logger.info(f"File uploaded successfully: {file.filename}, Task ID: {task.id}, Size: {file_size} bytes")
-
-        return JSONResponse({
+        task_metadata = {
             "task_id": task.id,
-            "status": task.status,
             "filename": file.filename,
             "file_size": file_size,
-            "mime_type": mime_type
-        })
+            "mime_type": mime_type,
+            "timestamp": int(time.time()),
+            "status": task.status,
+        }
+
+        # Store task ID in list and metadata in hash
+        await redis_client.lpush(TASK_LIST_KEY, task.id)
+        await redis_client.expire(TASK_LIST_KEY, TASK_TTL)
+        await redis_client.hset(f"task_metadata:{task.id}", mapping=task_metadata)
+        await redis_client.expire(f"task_metadata:{task.id}", TASK_TTL)
+
+        logger.info(
+            f"File uploaded successfully: {file.filename}, Task ID: {task.id}, Size: {file_size} bytes"
+        )
+
+        return JSONResponse(
+            {
+                "task_id": task.id,
+                "status": task.status,
+                "filename": file.filename,
+                "file_size": file_size,
+                "mime_type": mime_type,
+            }
+        )
 
     except HTTPException:
         raise
@@ -193,11 +214,44 @@ async def create_upload_file(file: UploadFile = File(...)):
 
 @app.get("/api/tasks")
 async def get_all_tasks():
+    """Get all tasks with their metadata and current status."""
     task_ids = await redis_client.lrange(TASK_LIST_KEY, 0, -1)
     tasks = []
+
     for task_id in task_ids:
-        task_result = AsyncResult(task_id)
-        tasks.append({"id": task_id, "status": task_result.status})
+        try:
+            # Get current task status from Celery
+            task_result = AsyncResult(task_id)
+            current_status = task_result.status
+
+            # Get task metadata from Redis
+            metadata = await redis_client.hgetall(f"task_metadata:{task_id}")
+
+            if metadata:
+                # Convert timestamp to int if it exists
+                if "timestamp" in metadata:
+                    metadata["timestamp"] = int(metadata["timestamp"])
+
+                # Update status with current status from Celery
+                metadata["status"] = current_status
+                metadata["task_id"] = task_id  # Ensure task_id is set
+
+                tasks.append(metadata)
+            else:
+                # Fallback for tasks without metadata
+                tasks.append(
+                    {
+                        "task_id": task_id,
+                        "status": current_status,
+                        "filename": "Unknown",
+                        "timestamp": 0,
+                    }
+                )
+
+        except Exception as e:
+            logger.warning(f"Error processing task {task_id}: {e}")
+            continue
+
     return JSONResponse(tasks)
 
 

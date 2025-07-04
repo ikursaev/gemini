@@ -141,3 +141,20 @@ Always use the browser to test the application after making changes, ensuring th
 - **Event Handling**: Proper dropdown management, drag & drop, and file upload processing
 
 **Browser Testing:** ✅ All tasks functionality now works correctly with full user interaction support.
+
+## Task Persistence Fix (2025-07-04)
+
+**Task Persistence Issues Resolved:**
+
+- **Fixed task disappearance on page reload**: Implemented comprehensive task persistence using localStorage + server synchronization
+- **Enhanced backend task metadata**: Added Redis-based storage for complete task information (filename, timestamp, status)
+- **Improved API endpoint**: Updated `/api/tasks` to return complete task metadata for proper frontend restoration
+- **Smart initialization**: Merges localStorage with server state on page load for robust persistence
+
+**Technical Implementation:**
+
+- **Backend**: Enhanced Redis storage with task metadata, improved `/api/tasks` endpoint
+- **Frontend**: localStorage persistence + server sync, automatic cleanup of old tasks
+- **Initialization**: Smart startup sequence that restores tasks and resumes polling
+
+**Browser Testing:** ✅ Tasks now persist across page reloads and browser sessions with real-time synchronization.

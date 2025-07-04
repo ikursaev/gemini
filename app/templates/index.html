@@ -83,6 +83,7 @@
         right: 0;
         margin-top: 0.5rem;
         width: 20rem;
+        z-index: 9999;
       }
 
       /* Additional Tailwind classes */
@@ -262,7 +263,7 @@
     class="bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-gray-900 dark:via-gray-800 dark:to-slate-900 text-gray-800 dark:text-gray-200 antialiased min-h-screen font-light"
   >
     <header
-      class="relative z-10 backdrop-blur-sm bg-white/80 dark:bg-gray-900/80 border-b border-gray-200/50 dark:border-gray-700/50 py-6 px-6"
+      class="relative z-20 backdrop-blur-sm bg-white/80 dark:bg-gray-900/80 border-b border-gray-200/50 dark:border-gray-700/50 py-6 px-6"
     >
       <div class="max-w-7xl mx-auto flex justify-between items-center">
         <div class="flex items-center space-x-4">
@@ -556,6 +557,9 @@
               timestamp: new Date(),
             });
 
+            // Save to localStorage
+            saveTasksToLocalStorage();
+
             // Update tasks display
             updateTasksDisplay();
 
@@ -725,13 +729,37 @@
           if (response.ok) {
             const serverTasks = await response.json();
 
-            // Update local tasks with server data
+            // Handle server tasks - both update existing and add new ones
             serverTasks.forEach((serverTask) => {
-              if (tasks.has(serverTask.task_id)) {
-                const localTask = tasks.get(serverTask.task_id);
+              const taskId = serverTask.task_id;
+
+              if (tasks.has(taskId)) {
+                // Update existing task status
+                const localTask = tasks.get(taskId);
                 localTask.status = serverTask.status;
+              } else {
+                // Add new task from server (for persistence after reload)
+                tasks.set(taskId, {
+                  id: taskId,
+                  status: serverTask.status,
+                  filename: serverTask.filename || "Unknown",
+                  timestamp: serverTask.timestamp
+                    ? new Date(serverTask.timestamp * 1000)
+                    : new Date(),
+                });
               }
             });
+
+            // Remove tasks that are no longer on the server
+            const serverTaskIds = new Set(serverTasks.map((t) => t.task_id));
+            for (const [taskId] of tasks) {
+              if (!serverTaskIds.has(taskId)) {
+                tasks.delete(taskId);
+              }
+            }
+
+            // Save tasks to localStorage for persistence
+            saveTasksToLocalStorage();
 
             updateTasksDisplay();
 
@@ -743,6 +771,11 @@
             if (!hasActiveTasks && tasksInterval) {
               clearInterval(tasksInterval);
               tasksInterval = null;
+            }
+
+            // Start polling if we have active tasks but no interval running
+            if (hasActiveTasks && !tasksInterval) {
+              startTasksPolling();
             }
           }
         } catch (error) {
@@ -757,6 +790,60 @@
         }
 
         tasksInterval = setInterval(fetchTasks, 2000); // Poll every 2 seconds
+      }
+
+      // localStorage functions for task persistence
+      function saveTasksToLocalStorage() {
+        try {
+          const tasksArray = Array.from(tasks.entries()).map(([id, task]) => ({
+            id,
+            ...task,
+            timestamp:
+              task.timestamp instanceof Date
+                ? task.timestamp.getTime()
+                : task.timestamp,
+          }));
+          localStorage.setItem(
+            "documentExtractorTasks",
+            JSON.stringify(tasksArray)
+          );
+        } catch (error) {
+          console.error("Error saving tasks to localStorage:", error);
+        }
+      }
+
+      function loadTasksFromLocalStorage() {
+        try {
+          const saved = localStorage.getItem("documentExtractorTasks");
+          if (saved) {
+            const tasksArray = JSON.parse(saved);
+            tasksArray.forEach((taskData) => {
+              tasks.set(taskData.id, {
+                id: taskData.id,
+                status: taskData.status,
+                filename: taskData.filename,
+                timestamp: new Date(taskData.timestamp),
+              });
+            });
+          }
+        } catch (error) {
+          console.error("Error loading tasks from localStorage:", error);
+          // Clear corrupted data
+          localStorage.removeItem("documentExtractorTasks");
+        }
+      }
+
+      // Clean up old completed tasks (keep only last 10)
+      function cleanupOldTasks() {
+        const completedTasks = Array.from(tasks.values())
+          .filter((task) => ["SUCCESS", "FAILURE"].includes(task.status))
+          .sort((a, b) => b.timestamp - a.timestamp);
+
+        if (completedTasks.length > 10) {
+          const tasksToRemove = completedTasks.slice(10);
+          tasksToRemove.forEach((task) => tasks.delete(task.id));
+          saveTasksToLocalStorage();
+        }
       }
 
       // Theme toggle
@@ -790,8 +877,29 @@
       // Initialize tasks display
       updateTasksDisplay();
 
-      // Load tasks on page load
-      fetchTasks();
+      // Initialize app on page load
+      async function initializeApp() {
+        // Load tasks from localStorage first
+        loadTasksFromLocalStorage();
+
+        // Then fetch latest from server (this will merge and update)
+        await fetchTasks();
+
+        // Clean up old tasks
+        cleanupOldTasks();
+
+        // Start polling if we have active tasks
+        const hasActiveTasks = Array.from(tasks.values()).some((task) =>
+          ["PENDING", "STARTED", "RETRY"].includes(task.status)
+        );
+
+        if (hasActiveTasks) {
+          startTasksPolling();
+        }
+      }
+
+      // Initialize the app
+      initializeApp();
     </script>
   </body>
 </html>
