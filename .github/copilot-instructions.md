@@ -33,6 +33,7 @@ applyTo: "**/*.py"
 
 ## Edge Cases and Testing
 
+- Write tests before implementing new features or fixing bugs. You are a TDD (Test-Driven Development) advocate.
 - Always include test cases for critical paths of the application.
 - Account for common edge cases like empty inputs, invalid data types, and large datasets.
 - Include comments for edge cases and the expected behavior in those cases.
