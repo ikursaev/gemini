@@ -1,5 +1,4 @@
 import asyncio
-import functools
 import logging
 from pathlib import Path
 
@@ -32,17 +31,8 @@ celery.conf.update(
 )
 
 
-def async_to_sync(func):
-    """Decorator to run async functions in sync context."""
-    @functools.wraps(func)
-    def wrapped(*args, **kwargs):
-        return asyncio.run(func(*args, **kwargs))
-    return wrapped
-
-
 @celery.task(bind=True, acks_late=True, reject_on_worker_lost=True)
-@async_to_sync
-async def process_file(self, file_path: str, mime_type: str):
+def process_file(self, file_path: str, mime_type: str):
     """Process uploaded file and extract content."""
     task_id = self.request.id
     logger.info(f"Starting task {task_id} for file {file_path} with mime type {mime_type}")
@@ -57,11 +47,11 @@ async def process_file(self, file_path: str, mime_type: str):
 
         # Process based on mime type
         if mime_type == "application/pdf":
-            extracted_data_list, input_tokens, output_tokens = await extract_content_from_pdf(path)
+            extracted_data_list, input_tokens, output_tokens = asyncio.run(extract_content_from_pdf(path))
         elif mime_type.startswith("image/"):
             with open(path, "rb") as f:
                 file_bytes = f.read()
-            extracted_data, input_tokens, output_tokens = await extract_content_from_image(file_bytes)
+            extracted_data, input_tokens, output_tokens = asyncio.run(extract_content_from_image(file_bytes))
             extracted_data_list = [extracted_data]
         else:
             logger.error(f"Task {task_id}: Unsupported file type: {mime_type}")

@@ -191,6 +191,10 @@ async def create_upload_file(file: UploadFile = File(...)):
         await redis_client.hset(f"task_metadata:{task.id}", mapping=task_metadata)
         await redis_client.expire(f"task_metadata:{task.id}", TASK_TTL)
 
+        # Debug: verify the data was stored
+        stored_metadata = await redis_client.hgetall(f"task_metadata:{task.id}")
+        logger.info(f"Stored metadata for task {task.id}: {stored_metadata}")
+
         logger.info(
             f"File uploaded successfully: {file.filename}, Task ID: {task.id}, Size: {file_size} bytes"
         )
@@ -257,13 +261,30 @@ async def get_all_tasks():
 
 @app.get("/api/tasks/{task_id}/result")
 async def get_task_result_json(task_id: str):
-    task_result = AsyncResult(task_id)
-    if task_result.ready():
-        result = task_result.get()
-        if "error" in result:
-            raise HTTPException(status_code=500, detail=result["error"])
-        return JSONResponse({"markdown": result["markdown"]})
-    raise HTTPException(status_code=404, detail="Task not ready yet.")
+    """Get task result as JSON."""
+    try:
+        task_result = AsyncResult(task_id)
+        if task_result.ready():
+            if task_result.successful():
+                result = task_result.get()
+                if result and isinstance(result, dict):
+                    if "error" in result:
+                        raise HTTPException(status_code=500, detail=result["error"])
+                    if "markdown" in result:
+                        return JSONResponse({"markdown": result["markdown"]})
+                raise HTTPException(status_code=500, detail="Invalid task result format")
+            else:
+                # Task failed
+                try:
+                    task_result.get(propagate=True)
+                except Exception as e:
+                    raise HTTPException(status_code=500, detail=f"Task failed: {str(e)}")
+        raise HTTPException(status_code=404, detail="Task not ready yet.")
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error getting task result for {task_id}: {e}")
+        raise HTTPException(status_code=500, detail=f"Error retrieving task result: {str(e)}")
 
 
 @app.post("/tasks/{task_id}/stop")
@@ -277,21 +298,37 @@ async def stop_task(task_id: str):
     dependencies=[Depends(RateLimiter(times=150, seconds=60))],
 )
 async def download_markdown(task_id: str):
-    task_result = AsyncResult(task_id)
-    if not task_result.ready():
-        raise HTTPException(status_code=404, detail="File not found or expired.")
+    """Download markdown result for a completed task."""
+    try:
+        task_result = AsyncResult(task_id)
+        if not task_result.ready():
+            raise HTTPException(status_code=404, detail="File not found or expired.")
 
-    result = task_result.get()
-    if "error" in result:
-        raise HTTPException(status_code=500, detail=result["error"])
+        if not task_result.successful():
+            raise HTTPException(status_code=500, detail="Task failed to complete successfully.")
 
-    markdown_content = result["markdown"]
+        result = task_result.get()
+        if not result or not isinstance(result, dict):
+            raise HTTPException(status_code=500, detail="Invalid task result format.")
 
-    return StreamingResponse(
-        io.BytesIO(markdown_content.encode("utf-8")),
-        media_type="text/markdown",
-        headers={"Content-Disposition": "attachment; filename=extracted_data.md"},
-    )
+        if "error" in result:
+            raise HTTPException(status_code=500, detail=result["error"])
+
+        if "markdown" not in result:
+            raise HTTPException(status_code=500, detail="No markdown content available.")
+
+        markdown_content = result["markdown"]
+
+        return StreamingResponse(
+            io.BytesIO(markdown_content.encode("utf-8")),
+            media_type="text/markdown",
+            headers={"Content-Disposition": "attachment; filename=extracted_data.md"},
+        )
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error downloading markdown for task {task_id}: {e}")
+        raise HTTPException(status_code=500, detail=f"Error downloading file: {str(e)}")
 
 
 if __name__ == "__main__":
