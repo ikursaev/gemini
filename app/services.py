@@ -32,10 +32,10 @@ async def extract_content_from_image(
     try:
         image = Image.open(io.BytesIO(image_bytes))
 
-        input_tokens = (await client.aio.models.count_tokens(
+        input_tokens = await client.aio.models.count_tokens(
             model=settings.MODEL_NAME,
             contents=[image],
-        ))
+        )
         response = await client.aio.models.generate_content(
             model=settings.MODEL_NAME,
             contents=[image],
@@ -44,10 +44,10 @@ async def extract_content_from_image(
                 temperature=0,
             ),
         )
-        output_tokens = (await client.aio.models.count_tokens(
+        output_tokens = await client.aio.models.count_tokens(
             model=settings.MODEL_NAME,
             contents=[response.text or ""],
-        ))
+        )
         logger.info(
             f"Image Extraction - Input Tokens: {input_tokens}, Output Tokens: {output_tokens}"
         )
@@ -66,9 +66,17 @@ async def extract_content_from_image(
                     output_tokens.total_tokens or 0,
                 )
             else:
-                return ExtractedData(text=response.text or ""), input_tokens.total_tokens or 0, output_tokens.total_tokens or 0
+                return (
+                    ExtractedData(text=response.text or ""),
+                    input_tokens.total_tokens or 0,
+                    output_tokens.total_tokens or 0,
+                )
         except json.JSONDecodeError:
-            return ExtractedData(text=response.text or ""), input_tokens.total_tokens or 0, output_tokens.total_tokens or 0
+            return (
+                ExtractedData(text=response.text or ""),
+                input_tokens.total_tokens or 0,
+                output_tokens.total_tokens or 0,
+            )
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error processing image: {e}")
 
@@ -80,10 +88,10 @@ async def extract_content_from_pdf(
         # Upload the file to Gemini
         uploaded_file = client.files.upload(file=file_path)
 
-        input_tokens = (await client.aio.models.count_tokens(
+        input_tokens = await client.aio.models.count_tokens(
             model=settings.MODEL_NAME,
             contents=[uploaded_file],
-        ))
+        )
 
         # Generate content from the uploaded file
         response = await client.aio.models.generate_content(
@@ -95,10 +103,10 @@ async def extract_content_from_pdf(
             ),
         )
 
-        output_tokens = (await client.aio.models.count_tokens(
+        output_tokens = await client.aio.models.count_tokens(
             model=settings.MODEL_NAME,
             contents=[response.text or ""],
-        ))
+        )
 
         logger.info(
             f"PDF Extraction - Input Tokens: {input_tokens}, Output Tokens: {output_tokens}"
@@ -120,9 +128,14 @@ async def extract_content_from_pdf(
         except json.JSONDecodeError:
             extracted_data_list = [ExtractedData(text=response.text or "")]
 
-        return extracted_data_list, input_tokens.total_tokens or 0, output_tokens.total_tokens or 0
+        return (
+            extracted_data_list,
+            input_tokens.total_tokens or 0,
+            output_tokens.total_tokens or 0,
+        )
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error processing PDF: {e}")
+
 
 def generate_markdown(extracted_data_list: list[ExtractedData]) -> str:
     markdown_output = ""

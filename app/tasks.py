@@ -14,18 +14,14 @@ from app.services import (
 logger = logging.getLogger(__name__)
 
 # Use Redis URL from settings
-celery = Celery(
-    __name__,
-    broker=settings.redis_url,
-    backend=settings.redis_url
-)
+celery = Celery(__name__, broker=settings.redis_url, backend=settings.redis_url)
 
 # Configure Celery settings
 celery.conf.update(
-    task_serializer='json',
-    accept_content=['json'],
-    result_serializer='json',
-    timezone='UTC',
+    task_serializer="json",
+    accept_content=["json"],
+    result_serializer="json",
+    timezone="UTC",
     enable_utc=True,
     result_expires=3600,  # Results expire after 1 hour
 )
@@ -35,7 +31,9 @@ celery.conf.update(
 def process_file(self, file_path: str, mime_type: str):
     """Process uploaded file and extract content."""
     task_id = self.request.id
-    logger.info(f"Starting task {task_id} for file {file_path} with mime type {mime_type}")
+    logger.info(
+        f"Starting task {task_id} for file {file_path} with mime type {mime_type}"
+    )
 
     try:
         path = Path(file_path)
@@ -47,11 +45,15 @@ def process_file(self, file_path: str, mime_type: str):
 
         # Process based on mime type
         if mime_type == "application/pdf":
-            extracted_data_list, input_tokens, output_tokens = asyncio.run(extract_content_from_pdf(path))
+            extracted_data_list, input_tokens, output_tokens = asyncio.run(
+                extract_content_from_pdf(path)
+            )
         elif mime_type.startswith("image/"):
             with open(path, "rb") as f:
                 file_bytes = f.read()
-            extracted_data, input_tokens, output_tokens = asyncio.run(extract_content_from_image(file_bytes))
+            extracted_data, input_tokens, output_tokens = asyncio.run(
+                extract_content_from_image(file_bytes)
+            )
             extracted_data_list = [extracted_data]
         else:
             logger.error(f"Task {task_id}: Unsupported file type: {mime_type}")
@@ -65,7 +67,9 @@ def process_file(self, file_path: str, mime_type: str):
             path.unlink(missing_ok=True)
             logger.info(f"Task {task_id}: Cleaned up uploaded file: {file_path}")
         except Exception as cleanup_error:
-            logger.warning(f"Task {task_id}: Failed to cleanup file {file_path}: {cleanup_error}")
+            logger.warning(
+                f"Task {task_id}: Failed to cleanup file {file_path}: {cleanup_error}"
+            )
 
         logger.info(
             f"Task {task_id}: Successfully processed file. "
@@ -75,11 +79,13 @@ def process_file(self, file_path: str, mime_type: str):
         return {
             "markdown": markdown_content,
             "input_tokens": input_tokens,
-            "output_tokens": output_tokens
+            "output_tokens": output_tokens,
         }
 
     except Exception as e:
-        logger.error(f"Task {task_id}: Error processing file {file_path}: {e}", exc_info=True)
+        logger.error(
+            f"Task {task_id}: Error processing file {file_path}: {e}", exc_info=True
+        )
 
         # Clean up file on error
         try:

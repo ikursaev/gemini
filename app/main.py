@@ -272,19 +272,25 @@ async def get_task_result_json(task_id: str):
                         raise HTTPException(status_code=500, detail=result["error"])
                     if "markdown" in result:
                         return JSONResponse({"markdown": result["markdown"]})
-                raise HTTPException(status_code=500, detail="Invalid task result format")
+                raise HTTPException(
+                    status_code=500, detail="Invalid task result format"
+                )
             else:
                 # Task failed
                 try:
                     task_result.get(propagate=True)
                 except Exception as e:
-                    raise HTTPException(status_code=500, detail=f"Task failed: {str(e)}")
+                    raise HTTPException(
+                        status_code=500, detail=f"Task failed: {str(e)}"
+                    )
         raise HTTPException(status_code=404, detail="Task not ready yet.")
     except HTTPException:
         raise
     except Exception as e:
         logger.error(f"Error getting task result for {task_id}: {e}")
-        raise HTTPException(status_code=500, detail=f"Error retrieving task result: {str(e)}")
+        raise HTTPException(
+            status_code=500, detail=f"Error retrieving task result: {str(e)}"
+        )
 
 
 @app.post("/tasks/{task_id}/stop")
@@ -305,7 +311,9 @@ async def download_markdown(task_id: str):
             raise HTTPException(status_code=404, detail="File not found or expired.")
 
         if not task_result.successful():
-            raise HTTPException(status_code=500, detail="Task failed to complete successfully.")
+            raise HTTPException(
+                status_code=500, detail="Task failed to complete successfully."
+            )
 
         result = task_result.get()
         if not result or not isinstance(result, dict):
@@ -315,7 +323,9 @@ async def download_markdown(task_id: str):
             raise HTTPException(status_code=500, detail=result["error"])
 
         if "markdown" not in result:
-            raise HTTPException(status_code=500, detail="No markdown content available.")
+            raise HTTPException(
+                status_code=500, detail="No markdown content available."
+            )
 
         markdown_content = result["markdown"]
 
