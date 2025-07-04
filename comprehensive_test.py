@@ -141,7 +141,7 @@ class DocumentExtractorTester:
             with open(test_file, "rb") as f:
                 files = {"file": ("test.txt", f, "text/plain")}
                 response = self.session.post(
-                    f"{self.base_url}/uploadfile/", files=files
+                    f"{self.base_url}/uploadfile/", files=files, timeout=10
                 )
 
             # Should get 400 error for unsupported file type
@@ -172,7 +172,7 @@ class DocumentExtractorTester:
             with open(test_file, "rb") as f:
                 files = {"file": ("test_image.png", f, "image/png")}
                 response = self.session.post(
-                    f"{self.base_url}/uploadfile/", files=files
+                    f"{self.base_url}/uploadfile/", files=files, timeout=15
                 )
 
             success = response.status_code == 200

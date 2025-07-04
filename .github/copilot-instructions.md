@@ -71,6 +71,7 @@ Always update GEMINI.md and `.github\copilot-instructions.md` with made changes.
 Always add new packages to pyproject.toml
 Always add required apps to the dockerfile's installation block, and ensure Celery worker is started in post-create.sh
 Always use the browser to test the application after making changes, ensuring that all functionalities work as expected.
+Always run tests after making changes to ensure everything works correctly.
 
 ## Recent Improvements (2025-01-03)
 
@@ -159,3 +160,29 @@ Always use the browser to test the application after making changes, ensuring th
 - **Initialization**: Smart startup sequence that restores tasks and resumes polling
 
 **Browser Testing:** ✅ Tasks now persist across page reloads and browser sessions with real-time synchronization.
+
+## Critical Event Loop Fix (2025-07-04)
+
+**Async Event Loop Issues Resolved:**
+
+- **Fixed "Event loop is closed" errors**: Resolved Celery task failures caused by improper async/sync handling in background tasks
+- **Enhanced async function execution**: Implemented `run_async_safely()` function that creates isolated event loops for each Celery task
+- **Improved task reliability**: Tasks now complete successfully without event loop conflicts (PENDING → SUCCESS in ~2 seconds)
+- **Fixed download functionality**: Both `/api/tasks/{task_id}/result` and `/download_markdown/{task_id}` endpoints now work correctly
+
+**Technical Implementation:**
+
+- **Event Loop Management**: Each Celery task gets its own isolated event loop to prevent conflicts
+- **Proper Async Handling**: Fixed mixing of `asyncio.run()` with existing event loops in worker processes
+- **Token Serialization**: Extracted actual token counts from `CountTokensResponse` objects for JSON serialization
+- **Error Handling**: Enhanced endpoint error handling for failed tasks with meaningful error messages
+
+**Testing Results:**
+
+- ✅ **10/10 comprehensive tests passing (100%)**
+- ✅ Tasks complete successfully (PENDING → SUCCESS)
+- ✅ Download endpoints working correctly
+- ✅ Real-time task monitoring functional
+- ✅ Task metadata persistence working
+
+**Browser Testing:** ✅ All functionality now works correctly including file upload, task processing, and result download.

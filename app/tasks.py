@@ -27,6 +27,23 @@ celery.conf.update(
 )
 
 
+def run_async_safely(coro):
+    """Safely run async coroutine in sync context."""
+    try:
+        # Create a new event loop for this task to avoid conflicts
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        try:
+            return loop.run_until_complete(coro)
+        finally:
+            # Ensure the loop is properly closed
+            loop.close()
+            asyncio.set_event_loop(None)
+    except Exception as e:
+        logger.error(f"Error running async function: {e}")
+        raise
+
+
 @celery.task(bind=True, acks_late=True, reject_on_worker_lost=True)
 def process_file(self, file_path: str, mime_type: str):
     """Process uploaded file and extract content."""
@@ -45,13 +62,13 @@ def process_file(self, file_path: str, mime_type: str):
 
         # Process based on mime type
         if mime_type == "application/pdf":
-            extracted_data_list, input_tokens, output_tokens = asyncio.run(
+            extracted_data_list, input_tokens, output_tokens = run_async_safely(
                 extract_content_from_pdf(path)
             )
         elif mime_type.startswith("image/"):
             with open(path, "rb") as f:
                 file_bytes = f.read()
-            extracted_data, input_tokens, output_tokens = asyncio.run(
+            extracted_data, input_tokens, output_tokens = run_async_safely(
                 extract_content_from_image(file_bytes)
             )
             extracted_data_list = [extracted_data]
