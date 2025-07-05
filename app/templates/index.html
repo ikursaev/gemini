@@ -540,6 +540,8 @@
         font-weight: 700;
         text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
         box-shadow: 0 2px 8px rgba(245, 158, 11, 0.3);
+        min-width: 1.5rem;
+        aspect-ratio: 1;
       }
 
       .badge-success {
@@ -548,6 +550,8 @@
         font-weight: 700;
         text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
         box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
+        min-width: 1.5rem;
+        aspect-ratio: 1;
       }
 
       .badge-error {
@@ -556,6 +560,8 @@
         font-weight: 700;
         text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
         box-shadow: 0 2px 8px rgba(239, 68, 68, 0.3);
+        min-width: 1.5rem;
+        aspect-ratio: 1;
       }
 
       /* Badge hover effects */
@@ -1469,13 +1475,13 @@
         // Create vibrant colorful badges HTML with animations
         let badgesHtml = "";
         if (pendingCount > 0) {
-          badgesHtml += `<span class="badge-enter badge-pulse badge-pending inline-flex items-center justify-center px-2.5 py-1 rounded-full text-xs font-bold ml-2 transition-all duration-200 cursor-pointer">${pendingCount}</span>`;
+          badgesHtml += `<span class="badge-enter badge-pulse badge-pending inline-flex items-center justify-center w-6 h-6 rounded-full text-xs font-bold ml-2 transition-all duration-200 cursor-pointer leading-none">${pendingCount}</span>`;
         }
         if (successCount > 0) {
-          badgesHtml += `<span class="badge-enter badge-success inline-flex items-center justify-center px-2.5 py-1 rounded-full text-xs font-bold ml-2 transition-all duration-200 cursor-pointer">${successCount}</span>`;
+          badgesHtml += `<span class="badge-enter badge-success inline-flex items-center justify-center w-6 h-6 rounded-full text-xs font-bold ml-2 transition-all duration-200 cursor-pointer leading-none">${successCount}</span>`;
         }
         if (errorCount > 0) {
-          badgesHtml += `<span class="badge-enter badge-error inline-flex items-center justify-center px-2.5 py-1 rounded-full text-xs font-bold ml-2 transition-all duration-200 cursor-pointer">${errorCount}</span>`;
+          badgesHtml += `<span class="badge-enter badge-error inline-flex items-center justify-center w-6 h-6 rounded-full text-xs font-bold ml-2 transition-all duration-200 cursor-pointer leading-none">${errorCount}</span>`;
         }
 
         tasksDropdownButton.innerHTML = `
