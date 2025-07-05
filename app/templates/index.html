@@ -605,8 +605,182 @@
         top: 100%;
         right: 0;
         margin-top: 0.5rem;
-        width: 20rem;
+        width: 22rem;
         z-index: 9999;
+      }
+
+      /* Enhanced dropdown styles */
+      .dropdown-header {
+        background: linear-gradient(
+          135deg,
+          rgba(59, 130, 246, 0.05) 0%,
+          rgba(99, 102, 241, 0.05) 100%
+        );
+        border-bottom: 1px solid rgba(229, 231, 235, 0.8);
+      }
+
+      .dark .dropdown-header {
+        background: linear-gradient(
+          135deg,
+          rgba(59, 130, 246, 0.1) 0%,
+          rgba(99, 102, 241, 0.1) 100%
+        );
+        border-bottom: 1px solid rgba(75, 85, 99, 0.6);
+      }
+
+      .task-item {
+        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        border-left: 3px solid transparent;
+      }
+
+      .task-item:hover {
+        background: linear-gradient(
+          135deg,
+          rgba(59, 130, 246, 0.02) 0%,
+          rgba(99, 102, 241, 0.02) 100%
+        );
+        border-left-color: rgba(59, 130, 246, 0.3);
+        transform: translateX(2px);
+      }
+
+      .dark .task-item:hover {
+        background: linear-gradient(
+          135deg,
+          rgba(59, 130, 246, 0.05) 0%,
+          rgba(99, 102, 241, 0.05) 100%
+        );
+      }
+
+      /* Enhanced download button - pill-shaped to match design system */
+      .download-button {
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        border: none;
+        color: white;
+        border-radius: 9999px;
+        padding: 0.5rem 1rem;
+        font-weight: 500;
+        font-size: 0.75rem;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        box-shadow: 0 2px 8px 0 rgba(16, 185, 129, 0.2);
+        cursor: pointer;
+        min-width: 70px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        text-decoration: none;
+      }
+
+      .download-button:hover {
+        background: linear-gradient(135deg, #059669 0%, #047857 100%);
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px 0 rgba(16, 185, 129, 0.3);
+      }
+
+      .download-button:active {
+        transform: translateY(0);
+        box-shadow: 0 2px 8px 0 rgba(16, 185, 129, 0.2);
+      }
+
+      .dark .download-button {
+        background: linear-gradient(135deg, #065f46 0%, #064e3b 100%);
+        box-shadow: 0 2px 8px 0 rgba(6, 95, 70, 0.3);
+      }
+
+      .dark .download-button:hover {
+        background: linear-gradient(135deg, #047857 0%, #065f46 100%);
+        box-shadow: 0 4px 12px 0 rgba(6, 95, 70, 0.4);
+      }
+
+      /* Task status indicators with enhanced styling */
+      .status-indicator {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .status-indicator.pending {
+        background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+        animation: pulse-glow 2s ease-in-out infinite;
+      }
+
+      .status-indicator.success {
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        box-shadow: 0 0 8px rgba(16, 185, 129, 0.4);
+      }
+
+      .status-indicator.failure {
+        background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+        box-shadow: 0 0 8px rgba(239, 68, 68, 0.4);
+      }
+
+      @keyframes pulse-glow {
+        0%,
+        100% {
+          box-shadow: 0 0 8px rgba(251, 191, 36, 0.6);
+          transform: scale(1);
+        }
+        50% {
+          box-shadow: 0 0 16px rgba(251, 191, 36, 0.8);
+          transform: scale(1.1);
+        }
+      }
+
+      /* Custom scrollbar for tasks list */
+      #tasks-list::-webkit-scrollbar {
+        width: 4px;
+      }
+
+      #tasks-list::-webkit-scrollbar-track {
+        background: rgba(156, 163, 175, 0.1);
+        border-radius: 2px;
+      }
+
+      #tasks-list::-webkit-scrollbar-thumb {
+        background: linear-gradient(135deg, #d1d5db, #9ca3af);
+        border-radius: 2px;
+      }
+
+      .dark #tasks-list::-webkit-scrollbar-thumb {
+        background: linear-gradient(135deg, #4b5563, #374151);
+      }
+
+      /* Empty state styling */
+      .empty-state {
+        padding: 2rem 1rem;
+        text-align: center;
+        color: #6b7280;
+      }
+
+      .dark .empty-state {
+        color: #9ca3af;
+      }
+
+      .empty-state svg {
+        margin: 0 auto 0.75rem auto;
+        opacity: 0.5;
+      }
+
+      /* Task item separator line */
+      .task-separator {
+        height: 1px;
+        background: linear-gradient(
+          90deg,
+          transparent 0%,
+          rgba(229, 231, 235, 0.6) 50%,
+          transparent 100%
+        );
+        margin: 0 1rem;
+      }
+
+      .dark .task-separator {
+        background: linear-gradient(
+          90deg,
+          transparent 0%,
+          rgba(75, 85, 99, 0.6) 50%,
+          transparent 100%
+        );
       }
 
       /* Additional Tailwind classes */
@@ -786,9 +960,9 @@
     class="bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-gray-900 dark:via-gray-800 dark:to-slate-900 text-gray-800 dark:text-gray-100 antialiased min-h-screen font-light transition-colors duration-300"
   >
     <header
-      class="relative z-20 backdrop-blur-sm bg-white/80 dark:bg-gray-900/90 border-b border-gray-200/50 dark:border-gray-700/60 py-6 transition-colors duration-300"
+      class="relative z-20 backdrop-blur-sm bg-white/80 dark:bg-gray-900/90 border-b border-gray-200/50 dark:border-gray-700/60 py-6 px-6 transition-colors duration-300"
     >
-      <div class="max-w-2xl lg:max-w-3xl xl:max-w-4xl mx-auto flex justify-between items-center px-4">
+      <div class="max-w-7xl mx-auto flex justify-between items-center">
         <div class="flex items-center space-x-4">
           <div
             class="w-6 h-6 bg-gradient-to-br from-purple-500 to-pink-500 rounded-lg icon-container"
@@ -844,14 +1018,48 @@
             </button>
             <div
               id="tasks-dropdown"
-              class="hidden glass rounded-xl shadow-2xl z-50 border border-gray-200/50 dark:border-gray-700/50 backdrop-blur-xl max-h-96 overflow-hidden"
+              class="hidden glass rounded-2xl shadow-2xl z-50 border border-gray-200/50 dark:border-gray-700/50 backdrop-blur-xl max-h-96 overflow-hidden"
               style="max-width: 90vw"
             >
-              <ul id="tasks-list" class="py-3 max-h-64 overflow-y-auto">
-                <li
-                  class="px-4 py-3 text-gray-500 dark:text-gray-400 text-sm text-center"
+              <div class="dropdown-header p-4">
+                <h3
+                  class="text-sm font-semibold text-gray-900 dark:text-gray-100 flex items-center"
                 >
-                  No tasks running.
+                  <svg
+                    class="w-4 h-4 mr-2 text-blue-500"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"
+                    ></path>
+                  </svg>
+                  Recent Tasks
+                </h3>
+              </div>
+              <ul id="tasks-list" class="py-2 max-h-64 overflow-y-auto">
+                <li class="empty-state">
+                  <svg
+                    class="w-8 h-8"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="1.5"
+                      d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"
+                    ></path>
+                  </svg>
+                  <p class="text-sm font-medium">No tasks running</p>
+                  <p class="text-xs mt-1 opacity-75">
+                    Upload a file to start processing
+                  </p>
                 </li>
               </ul>
             </div>
@@ -862,7 +1070,7 @@
     <main
       class="relative z-10 flex-1 flex items-center justify-center px-4 py-12 transition-colors duration-300"
     >
-      <div class="max-w-2xl lg:max-w-3xl xl:max-w-4xl mx-auto px-4">
+      <div class="w-full max-w-2xl lg:max-w-3xl xl:max-w-4xl">
         <div
           class="glass p-8 lg:p-10 xl:p-12 rounded-2xl shadow-2xl border border-gray-200/50 dark:border-gray-700/50 backdrop-blur-xl"
         >
@@ -1131,8 +1339,15 @@
       // Update tasks display
       function updateTasksDisplay() {
         if (tasks.size === 0) {
-          tasksList.innerHTML =
-            '<li class="px-4 py-3 text-gray-500 dark:text-gray-400 text-sm text-center">No tasks running.</li>';
+          tasksList.innerHTML = `
+            <li class="empty-state">
+              <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path>
+              </svg>
+              <p class="text-sm font-medium">No tasks running</p>
+              <p class="text-xs mt-1 opacity-75">Upload a file to start processing</p>
+            </li>
+          `;
           updateTasksButton();
           return;
         }
@@ -1142,13 +1357,18 @@
         );
 
         tasksList.innerHTML = sortedTasks
-          .map((task) => {
+          .map((task, index) => {
             const statusIcon = getStatusIcon(task.status);
             const statusColor = getStatusColor(task.status);
             const timeAgo = getTimeAgo(task.timestamp);
+            const isLast = index === sortedTasks.length - 1;
 
             return `
-            <li class="px-4 py-3 border-b border-gray-100 dark:border-gray-700 last:border-b-0">
+            <li class="task-item px-4 py-4${
+              !isLast
+                ? " border-b border-gray-100/50 dark:border-gray-700/50"
+                : ""
+            }">
               <div class="flex items-center justify-between">
                 <div class="flex items-center space-x-3 flex-1 min-w-0">
                   <div class="flex-shrink-0">
@@ -1158,16 +1378,21 @@
                     <p class="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">
                       ${task.filename}
                     </p>
-                    <p class="text-xs text-gray-500 dark:text-gray-400">
-                      ${timeAgo} • ${task.status}
+                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                      ${timeAgo} • <span class="${statusColor} font-medium">${getStatusDisplayName(
+              task.status
+            )}</span>
                     </p>
                   </div>
                 </div>
                 ${
                   task.status === "SUCCESS"
                     ? `
-                  <button onclick="downloadResult('${task.id}')" class="ml-2 text-blue-500 hover:text-blue-700 text-sm">
-                    Download
+                  <button onclick="downloadResult('${task.id}')" class="download-button flex items-center space-x-1">
+                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                    </svg>
+                    <span>Download</span>
                   </button>
                 `
                     : ""
@@ -1186,13 +1411,14 @@
         switch (status) {
           case "PENDING":
           case "STARTED":
-            return '<div class="w-2 h-2 bg-yellow-400 rounded-full animate-pulse"></div>';
+          case "RETRY":
+            return '<div class="status-indicator pending"></div>';
           case "SUCCESS":
-            return '<div class="w-2 h-2 bg-green-400 rounded-full"></div>';
+            return '<div class="status-indicator success"></div>';
           case "FAILURE":
-            return '<div class="w-2 h-2 bg-red-400 rounded-full"></div>';
+            return '<div class="status-indicator failure"></div>';
           default:
-            return '<div class="w-2 h-2 bg-gray-400 rounded-full"></div>';
+            return '<div class="status-indicator" style="background: #9ca3af;"></div>';
         }
       }
 
@@ -1201,13 +1427,32 @@
         switch (status) {
           case "PENDING":
           case "STARTED":
-            return "text-yellow-600";
+          case "RETRY":
+            return "text-amber-600 dark:text-amber-400";
           case "SUCCESS":
-            return "text-green-600";
+            return "text-emerald-600 dark:text-emerald-400";
           case "FAILURE":
-            return "text-red-600";
+            return "text-red-600 dark:text-red-400";
           default:
-            return "text-gray-600";
+            return "text-gray-600 dark:text-gray-400";
+        }
+      }
+
+      // Get human-readable status display name
+      function getStatusDisplayName(status) {
+        switch (status) {
+          case "PENDING":
+            return "Pending";
+          case "STARTED":
+            return "Processing";
+          case "RETRY":
+            return "Retrying";
+          case "SUCCESS":
+            return "Completed";
+          case "FAILURE":
+            return "Failed";
+          default:
+            return status;
         }
       }
 
