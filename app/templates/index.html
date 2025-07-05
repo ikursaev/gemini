@@ -41,9 +41,9 @@
 
       #tasks-dropdown {
         position: fixed;
-        top: auto;
-        right: 1rem;
-        margin-top: 0.5rem;
+        top: 0;
+        right: 0;
+        margin-top: 0;
         width: 22rem;
         z-index: 9999;
         transform: translateY(0);
@@ -1348,6 +1348,36 @@
       let tasks = new Map();
       let tasksInterval;
 
+      // Initialize dropdown position on page load
+      function initializeDropdownPosition() {
+        const dropdown = tasksDropdown;
+        const buttonRect = tasksDropdownButton.getBoundingClientRect();
+        const viewportWidth = window.innerWidth;
+        const dropdownWidth = 22 * 16; // 22rem in pixels
+
+        // Set initial position below button (hidden)
+        dropdown.style.position = "fixed";
+        dropdown.style.top = buttonRect.bottom + 8 + "px";
+
+        // Smart positioning to stay within viewport
+        if (buttonRect.right - dropdownWidth < 16) {
+          // Not enough space on the right, position from left
+          dropdown.style.left = "1rem";
+          dropdown.style.right = "1rem";
+          dropdown.style.width = "auto";
+          dropdown.style.maxWidth = "calc(100vw - 2rem)";
+        } else {
+          // Enough space, position normally
+          dropdown.style.right = viewportWidth - buttonRect.right + "px";
+          dropdown.style.left = "auto";
+          dropdown.style.width = "22rem";
+          dropdown.style.maxWidth = "22rem";
+        }
+      }
+
+      // Initialize position after a short delay to ensure button is positioned
+      setTimeout(initializeDropdownPosition, 100);
+
       dropArea.addEventListener("click", () => fileInput.click());
 
       // Enhanced drag and drop functionality
@@ -1385,29 +1415,28 @@
 
         if (isHidden) {
           // Position dropdown relative to button before showing
-          requestAnimationFrame(() => {
-            const buttonRect = tasksDropdownButton.getBoundingClientRect();
-            const viewportWidth = window.innerWidth;
-            const dropdownWidth = 22 * 16; // 22rem in pixels
+          const buttonRect = tasksDropdownButton.getBoundingClientRect();
+          const viewportWidth = window.innerWidth;
+          const dropdownWidth = 22 * 16; // 22rem in pixels
 
-            dropdown.style.position = "fixed";
-            dropdown.style.top = buttonRect.bottom + 8 + "px";
+          // Always position below the button
+          dropdown.style.position = "fixed";
+          dropdown.style.top = buttonRect.bottom + 8 + "px";
 
-            // Smart positioning to stay within viewport
-            if (buttonRect.right - dropdownWidth < 16) {
-              // Not enough space on the right, position from left
-              dropdown.style.left = "1rem";
-              dropdown.style.right = "1rem";
-              dropdown.style.width = "auto";
-              dropdown.style.maxWidth = "calc(100vw - 2rem)";
-            } else {
-              // Enough space, position normally
-              dropdown.style.right = viewportWidth - buttonRect.right + "px";
-              dropdown.style.left = "auto";
-              dropdown.style.width = "22rem";
-              dropdown.style.maxWidth = "22rem";
-            }
-          });
+          // Smart positioning to stay within viewport
+          if (buttonRect.right - dropdownWidth < 16) {
+            // Not enough space on the right, position from left
+            dropdown.style.left = "1rem";
+            dropdown.style.right = "1rem";
+            dropdown.style.width = "auto";
+            dropdown.style.maxWidth = "calc(100vw - 2rem)";
+          } else {
+            // Enough space, position normally
+            dropdown.style.right = viewportWidth - buttonRect.right + "px";
+            dropdown.style.left = "auto";
+            dropdown.style.width = "22rem";
+            dropdown.style.maxWidth = "22rem";
+          }
         }
 
         dropdown.classList.toggle("hidden");
