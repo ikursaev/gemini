@@ -1,0 +1,10 @@
+This is a test document for demonstrating the enhanced tasks dropdown functionality.
+
+The document contains sample text that will be processed by the system to show how the new beautiful task management interface works.
+
+Features to test:
+- Stylish dropdown with gradient header
+- Enhanced task items with hover effects
+- Beautiful pill-shaped download buttons
+- Improved status indicators with animations
+- Better spacing and typography
