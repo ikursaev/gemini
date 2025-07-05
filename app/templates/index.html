@@ -334,7 +334,7 @@
         border: none;
         color: white;
         border-radius: 9999px; /* Full pill shape */
-        padding: 0.5rem 1rem; /* Reduced padding for narrower button */
+        padding: 0.75rem 1.5rem; /* Increased padding for wider button */
         font-weight: 600;
         font-size: 0.875rem;
         transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -511,39 +511,7 @@
         );
       }
 
-      /* Enhanced badge animations with vibrant colors */
-      .badge-enter {
-        animation: badge-slide-in 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
-      }
-
-      @keyframes badge-slide-in {
-        from {
-          opacity: 0;
-          transform: translateX(15px) scale(0.6);
-        }
-        to {
-          opacity: 1;
-          transform: translateX(0) scale(1);
-        }
-      }
-
-      .badge-pulse {
-        animation: badge-pulse 2s ease-in-out infinite;
-      }
-
-      @keyframes badge-pulse {
-        0%,
-        100% {
-          opacity: 1;
-          transform: scale(1);
-          box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.7);
-        }
-        50% {
-          opacity: 0.9;
-          transform: scale(1.05);
-          box-shadow: 0 0 0 4px rgba(245, 158, 11, 0);
-        }
-      }
+      /* Badge animations removed for static display */
 
       /* Modern colorful badge styles */
       .badge-pending {
@@ -576,19 +544,19 @@
         aspect-ratio: 1;
       }
 
-      /* Badge hover effects */
+      /* Badge hover effects - animations removed */
       .badge-pending:hover {
-        transform: scale(1.1);
+        /* transform: scale(1.1); */
         box-shadow: 0 4px 12px rgba(245, 158, 11, 0.4);
       }
 
       .badge-success:hover {
-        transform: scale(1.1);
+        /* transform: scale(1.1); */
         box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
       }
 
       .badge-error:hover {
-        transform: scale(1.1);
+        /* transform: scale(1.1); */
         box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4);
       }
       .w-3 {
@@ -1245,7 +1213,7 @@
       class="relative z-10 flex-1 flex items-center justify-center px-4 py-12 transition-colors duration-300"
     >
       <div
-        class="w-full max-w-lg md:max-w-xl lg:max-w-2xl xl:max-w-3xl 2xl:max-w-4xl mx-auto"
+        class="w-full max-w-sm md:max-w-md lg:max-w-lg xl:max-w-xl mx-auto"
       >
         <div
           class="glass p-8 lg:p-10 xl:p-12 rounded-2xl shadow-2xl border border-gray-200/50 dark:border-gray-700/50 backdrop-blur-xl"
@@ -1564,16 +1532,16 @@
           (task) => task.status === "FAILURE"
         ).length;
 
-        // Create vibrant colorful badges HTML with animations
+        // Create colorful badges HTML without animations
         let badgesHtml = "";
         if (pendingCount > 0) {
-          badgesHtml += `<span class="badge-enter badge-pulse badge-pending inline-flex items-center justify-center w-6 h-6 rounded-full text-xs font-bold ml-2 transition-all duration-200 cursor-pointer leading-none">${pendingCount}</span>`;
+          badgesHtml += `<span class="badge-pending inline-flex items-center justify-center w-6 h-6 rounded-full text-xs font-bold ml-2 transition-all duration-200 cursor-pointer leading-none">${pendingCount}</span>`;
         }
         if (successCount > 0) {
-          badgesHtml += `<span class="badge-enter badge-success inline-flex items-center justify-center w-6 h-6 rounded-full text-xs font-bold ml-2 transition-all duration-200 cursor-pointer leading-none">${successCount}</span>`;
+          badgesHtml += `<span class="badge-success inline-flex items-center justify-center w-6 h-6 rounded-full text-xs font-bold ml-2 transition-all duration-200 cursor-pointer leading-none">${successCount}</span>`;
         }
         if (errorCount > 0) {
-          badgesHtml += `<span class="badge-enter badge-error inline-flex items-center justify-center w-6 h-6 rounded-full text-xs font-bold ml-2 transition-all duration-200 cursor-pointer leading-none">${errorCount}</span>`;
+          badgesHtml += `<span class="badge-error inline-flex items-center justify-center w-6 h-6 rounded-full text-xs font-bold ml-2 transition-all duration-200 cursor-pointer leading-none">${errorCount}</span>`;
         }
 
         tasksDropdownButton.innerHTML = `
