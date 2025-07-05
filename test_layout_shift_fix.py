@@ -19,7 +19,7 @@ def test_layout_shift_fix():
         response = requests.get(base_url)
         if response.status_code == 200:
             content = response.text
-            
+
             # Check for layout shift prevention elements
             shift_prevention_checks = [
                 "overflow-x: hidden" in content,
@@ -28,13 +28,17 @@ def test_layout_shift_fix():
                 "will-change: transform, opacity" in content,
                 "getBoundingClientRect" in content,
             ]
-            
+
             passed_checks = sum(shift_prevention_checks)
             if passed_checks >= 3:
-                print(f"✅ Layout shift prevention implemented ({passed_checks}/5 checks passed)")
+                print(
+                    f"✅ Layout shift prevention implemented ({passed_checks}/5 checks passed)"
+                )
             else:
-                print(f"❌ Layout shift prevention incomplete ({passed_checks}/5 checks passed)")
-                
+                print(
+                    f"❌ Layout shift prevention incomplete ({passed_checks}/5 checks passed)"
+                )
+
         else:
             print(f"❌ Homepage failed to load: {response.status_code}")
     except Exception as e:
@@ -46,7 +50,7 @@ def test_layout_shift_fix():
         response = requests.get(base_url)
         if response.status_code == 200:
             content = response.text
-            
+
             # Check for positioning improvements
             positioning_checks = [
                 "buttonRect.getBoundingClientRect" in content,
@@ -55,13 +59,17 @@ def test_layout_shift_fix():
                 "dropdown.style.top" in content,
                 "dropdown.style.right" in content,
             ]
-            
+
             passed_checks = sum(positioning_checks)
             if passed_checks >= 4:
-                print(f"✅ Dropdown positioning improved ({passed_checks}/5 checks passed)")
+                print(
+                    f"✅ Dropdown positioning improved ({passed_checks}/5 checks passed)"
+                )
             else:
-                print(f"❌ Dropdown positioning needs work ({passed_checks}/5 checks passed)")
-                
+                print(
+                    f"❌ Dropdown positioning needs work ({passed_checks}/5 checks passed)"
+                )
+
         else:
             print(f"❌ Homepage failed to load: {response.status_code}")
     except Exception as e:

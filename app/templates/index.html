@@ -1335,20 +1335,20 @@
       // Tasks dropdown toggle with proper positioning
       tasksDropdownButton.addEventListener("click", (e) => {
         e.stopPropagation();
-        
+
         const dropdown = tasksDropdown;
         const isHidden = dropdown.classList.contains("hidden");
-        
+
         if (isHidden) {
           // Position dropdown relative to button before showing
           requestAnimationFrame(() => {
             const buttonRect = tasksDropdownButton.getBoundingClientRect();
             const viewportWidth = window.innerWidth;
             const dropdownWidth = 22 * 16; // 22rem in pixels
-            
+
             dropdown.style.position = "fixed";
-            dropdown.style.top = (buttonRect.bottom + 8) + "px";
-            
+            dropdown.style.top = buttonRect.bottom + 8 + "px";
+
             // Smart positioning to stay within viewport
             if (buttonRect.right - dropdownWidth < 16) {
               // Not enough space on the right, position from left
@@ -1358,14 +1358,14 @@
               dropdown.style.maxWidth = "calc(100vw - 2rem)";
             } else {
               // Enough space, position normally
-              dropdown.style.right = (viewportWidth - buttonRect.right) + "px";
+              dropdown.style.right = viewportWidth - buttonRect.right + "px";
               dropdown.style.left = "auto";
               dropdown.style.width = "22rem";
               dropdown.style.maxWidth = "22rem";
             }
           });
         }
-        
+
         dropdown.classList.toggle("hidden");
       });
 
