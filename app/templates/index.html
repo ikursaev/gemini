@@ -513,6 +513,23 @@
 
       /* Badge animations removed for static display */
 
+      /* Counter-specific bounce animations */
+      .badge-bounce {
+        animation: badge-bounce 0.6s ease-in-out;
+      }
+
+      @keyframes badge-bounce {
+        0% {
+          transform: scale(1);
+        }
+        50% {
+          transform: scale(1.3);
+        }
+        100% {
+          transform: scale(1);
+        }
+      }
+
       /* Modern colorful badge styles */
       .badge-pending {
         background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
@@ -1212,9 +1229,7 @@
     <main
       class="relative z-10 flex-1 flex items-center justify-center px-4 py-12 transition-colors duration-300"
     >
-      <div
-        class="w-full max-w-sm md:max-w-md lg:max-w-lg xl:max-w-xl mx-auto"
-      >
+      <div class="w-full max-w-sm md:max-w-md lg:max-w-lg xl:max-w-xl mx-auto">
         <div
           class="glass p-8 lg:p-10 xl:p-12 rounded-2xl shadow-2xl border border-gray-200/50 dark:border-gray-700/50 backdrop-blur-xl"
         >
@@ -1340,6 +1355,10 @@
 
       let tasks = new Map();
       let tasksInterval;
+
+      // Track previous counts for bounce animations
+      let previousPendingCount = 0;
+      let previousSuccessCount = 0;
 
       // Initialize dropdown position on page load
       function initializeDropdownPosition() {
@@ -1486,11 +1505,11 @@
             // Update tasks display
             updateTasksDisplay();
 
-            // Add bounce animation to tasks button
-            tasksDropdownButton.classList.add("animate-bounce");
-            setTimeout(() => {
-              tasksDropdownButton.classList.remove("animate-bounce");
-            }, 1000);
+            // Remove Tasks button bounce - now handled by individual counters
+            // tasksDropdownButton.classList.add("animate-bounce");
+            // setTimeout(() => {
+            //   tasksDropdownButton.classList.remove("animate-bounce");
+            // }, 1000);
 
             // Start polling for updates
             if (!tasksInterval) {
@@ -1532,13 +1551,19 @@
           (task) => task.status === "FAILURE"
         ).length;
 
-        // Create colorful badges HTML without animations
+        // Check for count increases to trigger bounce animations
+        const pendingIncreased = pendingCount > previousPendingCount;
+        const successIncreased = successCount > previousSuccessCount;
+
+        // Create colorful badges HTML with conditional bounce animations
         let badgesHtml = "";
         if (pendingCount > 0) {
-          badgesHtml += `<span class="badge-pending inline-flex items-center justify-center w-6 h-6 rounded-full text-xs font-bold ml-2 transition-all duration-200 cursor-pointer leading-none">${pendingCount}</span>`;
+          const bounceClass = pendingIncreased ? " badge-bounce" : "";
+          badgesHtml += `<span class="badge-pending inline-flex items-center justify-center w-6 h-6 rounded-full text-xs font-bold ml-2 transition-all duration-200 cursor-pointer leading-none${bounceClass}">${pendingCount}</span>`;
         }
         if (successCount > 0) {
-          badgesHtml += `<span class="badge-success inline-flex items-center justify-center w-6 h-6 rounded-full text-xs font-bold ml-2 transition-all duration-200 cursor-pointer leading-none">${successCount}</span>`;
+          const bounceClass = successIncreased ? " badge-bounce" : "";
+          badgesHtml += `<span class="badge-success inline-flex items-center justify-center w-6 h-6 rounded-full text-xs font-bold ml-2 transition-all duration-200 cursor-pointer leading-none${bounceClass}">${successCount}</span>`;
         }
         if (errorCount > 0) {
           badgesHtml += `<span class="badge-error inline-flex items-center justify-center w-6 h-6 rounded-full text-xs font-bold ml-2 transition-all duration-200 cursor-pointer leading-none">${errorCount}</span>`;
@@ -1546,11 +1571,24 @@
 
         tasksDropdownButton.innerHTML = `
           <svg class="w-4 h-4 text-white flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path>
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path>
           </svg>
           <span class="text-white font-semibold">Tasks</span>
           ${badgesHtml}
         `;
+
+        // Remove bounce classes after animation completes
+        if (pendingIncreased || successIncreased) {
+          setTimeout(() => {
+            // Get the badges after the DOM update and remove bounce classes
+            const badges = tasksDropdownButton.querySelectorAll('.badge-bounce');
+            badges.forEach(badge => badge.classList.remove('badge-bounce'));
+          }, 600); // Match animation duration
+        }
+
+        // Update previous counts
+        previousPendingCount = pendingCount;
+        previousSuccessCount = successCount;
       }
 
       // Update tasks display
