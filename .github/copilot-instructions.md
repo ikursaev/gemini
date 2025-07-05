@@ -80,6 +80,7 @@ def calculate_area(radius: float) -> float:
 - Ultrathink!
 - Come up with a plan before starting the implementation. Offer multiple options for me to choose.
 - Temporarily create a to-do list at the end of `.github\copilot-instructions.md`. Remove when done.
+- Always use port 8000 for the app.
 
 ## Recent Improvements (2025-01-03)
 

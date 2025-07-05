@@ -793,6 +793,42 @@
         box-shadow: 0 4px 12px 0 rgba(6, 95, 70, 0.4);
       }
 
+      /* Remove default list bullets from tasks dropdown */
+      #tasks-list {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+      }
+
+      #tasks-list li {
+        list-style: none;
+        list-style-type: none;
+      }
+
+      #tasks-list li::before {
+        content: none;
+      }
+
+      /* Empty state styling */
+      .empty-state {
+        list-style: none !important;
+        list-style-type: none !important;
+      }
+
+      .empty-state::before {
+        content: none !important;
+      }
+
+      /* Task items should not have list styling */
+      .task-item {
+        list-style: none !important;
+        list-style-type: none !important;
+      }
+
+      .task-item::before {
+        content: none !important;
+      }
+
       /* Task status indicators with enhanced styling */
       .status-indicator {
         width: 8px;
